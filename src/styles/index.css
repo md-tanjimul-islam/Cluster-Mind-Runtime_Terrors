@@ -1237,7 +1237,7 @@ nav {
 }
 
 .c-grid {
-  stroke: rgba(255, 255, 255, 0.05);
+  stroke: var(--border);
   stroke-dasharray: 4;
 }
 
@@ -1248,7 +1248,7 @@ nav {
 }
 
 .c-pts circle {
-  fill: var(--cyan);
+  transition: all var(--transition-fast);
 }
 
 .chart-x {
@@ -1257,6 +1257,118 @@ nav {
   margin-top: 8px;
   font-size: 0.6875rem;
   color: var(--text-dim);
+}
+
+.chart-x-item {
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.chart-x-item.active {
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 12%, transparent);
+}
+
+/* Impact Interactive Floating Tooltip & KPI Bar */
+.impact-hover-tooltip {
+  position: absolute;
+  top: 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 10;
+  transform: translateX(-50%);
+  animation: fadeIn 0.15s ease;
+  min-width: 150px;
+}
+
+body.light-mode .impact-hover-tooltip {
+  background: #ffffff;
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.impact-tt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.impact-tt-header strong {
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.impact-tt-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.impact-tt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Impact KPI Callout Bar */
+.impact-detail-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.impact-kpi-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+body.light-mode .impact-kpi-item {
+  background: rgba(248, 250, 252, 0.9);
+  border-color: rgba(226, 232, 240, 0.8);
+}
+
+.impact-kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.impact-kpi-label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.impact-kpi-val {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--text);
 }
 
 /* ==========================================================================
