@@ -6,10 +6,7 @@ const ClusterContext = createContext();
 const getApiBase = () => {
   if (typeof window === 'undefined') return '';
   const host = window.location.hostname;
-  if (host.includes('-frontend')) {
-    return window.location.origin.replace('-frontend', '-backend');
-  }
-  if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
+  if (host.includes('onrender.com') || (!host.includes('localhost') && !host.includes('127.0.0.1'))) {
     return 'https://clustermind-backend-s51y.onrender.com';
   }
   return '';
