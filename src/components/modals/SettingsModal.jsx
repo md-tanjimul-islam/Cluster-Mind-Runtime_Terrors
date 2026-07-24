@@ -9,7 +9,8 @@ export function SettingsModal() {
     sound, toggleSound,
     riskThreshold: contextRiskThreshold,
     setRiskThreshold: setContextRiskThreshold,
-    addToast
+    addToast,
+    resetSystem
   } = useCluster();
 
   // Local settings state initialized from localStorage/context
@@ -228,6 +229,42 @@ export function SettingsModal() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* System Baseline Recovery Reset Section */}
+            <div className="wiz-section-card" style={{ borderColor: 'rgba(0, 242, 254, 0.3)', background: 'color-mix(in srgb, var(--cyan) 5%, var(--surface))' }}>
+              <div className="wiz-card-header">
+                <div className="wiz-card-title">
+                  <RotateCcw style={{ width: '16px', height: '16px', color: 'var(--cyan)' }} />
+                  <span>Restore Initial Cluster Baseline</span>
+                </div>
+                <span className="wiz-step-pill">SYSTEM RESET</span>
+              </div>
+
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.4 }}>
+                If you have deleted any initial demo nodes or workloads, click below to restore all default cluster nodes, initial incidents, and baseline metrics.
+              </p>
+
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  if (typeof resetSystem === 'function') {
+                    resetSystem();
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderColor: 'var(--cyan)',
+                  color: 'var(--cyan)',
+                  fontWeight: 700
+                }}
+              >
+                <RotateCcw style={{ width: '14px', height: '14px' }} />
+                <span>Reset Full System to Initial Baseline</span>
+              </button>
             </div>
           </div>
 

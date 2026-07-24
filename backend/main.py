@@ -476,3 +476,21 @@ def clear_activity_log():
     """Clears all logged activity from the audit trail."""
     state["activity"] = []
     return {"ok": True, "message": "Activity audit log cleared"}
+
+@app.post("/api/reset")
+def reset_system():
+    """Resets entire backend state back to initial default baseline."""
+    import copy
+    state["nodes"] = copy.deepcopy(INITIAL_NODES)
+    state["incident"] = {"node": "gpu-worker-02", "risk": 72, "status": "checkpointing", "progress": 68}
+    state["impact"] = {"prevented": 47, "savings": 38980, "recovery": 24}
+    state["activity"] = [
+        {"type": "shield", "title": "IsolationForest risk spike", "detail": "gpu-worker-02 flagged @ 72%", "time": "12m"},
+        {"type": "move", "title": "Workload migration", "detail": "train-resnet-42 → gpu-worker-01", "time": "45m"},
+        {"type": "alert", "title": "Memory pressure resolved", "detail": "cpu-worker-02 freed 4.2 GB", "time": "1h"},
+        {"type": "shield", "title": "Incident prevented", "detail": "$1,180 estimated compute saved", "time": "2h"}
+    ]
+    state["workloads"] = copy.deepcopy(INITIAL_WORKLOAD_JOBS)
+    state["tokens"] = {}
+    state["risk_threshold"] = 65
+    return {"ok": True, "message": "Backend system reset to initial baseline state"}

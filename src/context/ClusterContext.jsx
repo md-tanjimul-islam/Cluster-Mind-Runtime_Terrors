@@ -316,6 +316,19 @@ export function ClusterProvider({ children }) {
     } catch {}
   };
 
+  const resetSystem = async () => {
+    try {
+      localStorage.removeItem('clustermind-custom-nodes');
+      localStorage.setItem('clustermind-risk-threshold', '65');
+      setRiskThreshold(65);
+      await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+    } catch {}
+    addToast('System Reset Complete', 'Restored initial cluster nodes, demo workloads & baseline metrics', 'var(--cyan)');
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
   return (
     <ClusterContext.Provider value={{
       nodes, setNodes,
@@ -335,7 +348,7 @@ export function ClusterProvider({ children }) {
       selectedNodeId, setSelectedNodeId,
       selectedRiskNodeId, setSelectedRiskNodeId,
       demoStep, setDemoStep,
-      injectScenario, completeHealing, addNode, deleteNode, playSound
+      injectScenario, completeHealing, addNode, deleteNode, playSound, resetSystem
     }}>
       {children}
     </ClusterContext.Provider>
