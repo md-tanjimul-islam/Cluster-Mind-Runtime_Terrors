@@ -63,10 +63,20 @@ export function SettingsModal() {
 
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal('none')}>
-      <section className="modal modal-wizard-v3" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px' }}>
+      <section
+        className="modal modal-wizard-v3"
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxWidth: '640px',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
         <button className="modal-close" onClick={() => setActiveModal('none')} aria-label="Close settings (Esc)">×</button>
 
-        <header className="wiz-header-v3">
+        <header className="wiz-header-v3" style={{ flexShrink: 0 }}>
           <div className="wiz-title-row">
             <div className="wiz-icon-avatar" style={{ background: 'color-mix(in srgb, var(--cyan) 16%, transparent)', border: '1px solid var(--cyan)' }}>
               <Settings style={{ width: '24px', height: '24px', color: 'var(--cyan)' }} />
@@ -78,8 +88,8 @@ export function SettingsModal() {
           </div>
         </header>
 
-        <form onSubmit={handleSaveSettings}>
-          <div className="wiz-body-v3" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form className="wiz-form-v3" onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div className="wiz-body-v3" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, padding: '20px 24px' }}>
             {/* Section 1: Ingestion Network Server */}
             <div className="wiz-section-card">
               <div className="wiz-card-header">
@@ -200,7 +210,7 @@ export function SettingsModal() {
             </div>
           </div>
 
-          <footer className="wiz-footer">
+          <footer className="wiz-footer" style={{ flexShrink: 0 }}>
             <button type="button" className="btn btn-ghost" onClick={handleResetDefaults}>
               <RotateCcw style={{ width: '14px', height: '14px' }} />
               <span>Reset Defaults</span>
