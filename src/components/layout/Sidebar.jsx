@@ -28,8 +28,11 @@ export function Sidebar({ mobileOpen, onMobileClose }) {
     if (onMobileClose) onMobileClose();
   };
 
-  // Calculate cluster health
-  const healthPct = nodes.length ? Math.round(100 - nodes.reduce((acc, n) => acc + n.risk, 0) / nodes.length) : 100;
+  // Calculate cluster health safely
+  const validNodes = (nodes || []).filter(n => n && typeof n.risk === 'number' && !isNaN(n.risk));
+  const healthPct = validNodes.length 
+    ? Math.max(0, Math.min(100, Math.round(100 - validNodes.reduce((acc, n) => acc + n.risk, 0) / validNodes.length))) 
+    : 100;
 
   return (
     <>

@@ -20,6 +20,8 @@ export function ActivityLog() {
     return <AlertTriangle style={{ color: 'var(--amber)' }} />;
   };
 
+  const validActivity = (activity || []).filter(a => a && a.title);
+
   return (
     <article className="panel activity-panel">
       <div className="panel-header">
@@ -27,13 +29,13 @@ export function ActivityLog() {
           <p className="eyebrow">Audit Trail</p>
           <h2 className="panel-title">
             <span>Recent activity</span>
-            {activity.length > 0 && (
-              <span className="job-counter-badge">{activity.length} Entries</span>
+            {validActivity.length > 0 && (
+              <span className="job-counter-badge">{validActivity.length} Entries</span>
             )}
           </h2>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {activity.length > 0 && (
+          {validActivity.length > 0 && (
             <button className="btn-ghost-sm" onClick={clearLog} title="Clear recent activity log">
               <Trash2 style={{ width: '13px', height: '13px', color: 'var(--red)' }} />
               <span>Clear log</span>
@@ -47,12 +49,12 @@ export function ActivityLog() {
       </div>
 
       <div className="act-list" aria-label="Activity log">
-        {activity.length === 0 ? (
+        {validActivity.length === 0 ? (
           <div className="nodes-empty" style={{ padding: '24px 16px' }}>
             No recent activity logged in audit trail.
           </div>
         ) : (
-          activity.map((act, index) => (
+          validActivity.map((act, index) => (
             <div key={index} className="act-row">
               <div className="act-icon">
                 {getIcon(act.type)}

@@ -5,9 +5,10 @@ import { Cpu } from 'lucide-react';
 export function JobsPanel() {
   const { workloadJobs, jobFilter, setJobFilter } = useCluster();
 
+  const validJobs = (workloadJobs || []).filter(j => j && j.id);
   const filteredJobs = jobFilter === 'all'
-    ? workloadJobs
-    : workloadJobs.filter(j => j.category === jobFilter);
+    ? validJobs
+    : validJobs.filter(j => j.category === jobFilter);
 
   return (
     <article className="panel jobs-panel" id="jobsPanel">

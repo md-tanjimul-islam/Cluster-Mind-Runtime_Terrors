@@ -13,10 +13,11 @@ export function NodeGrid() {
     setSelectedNodeId, setActiveModal
   } = useCluster();
 
-  const riskColor = (risk) => risk >= riskThreshold ? 'var(--red)' : risk >= 30 ? 'var(--amber)' : 'var(--green)';
-  const barColor  = (val)  => val >= 80 ? 'var(--red)'  : val >= riskThreshold ? 'var(--amber)' : 'var(--cyan)';
+  const riskColor = (risk) => (typeof risk === 'number' && risk >= riskThreshold) ? 'var(--red)' : (typeof risk === 'number' && risk >= 30) ? 'var(--amber)' : 'var(--green)';
+  const barColor  = (val)  => (typeof val === 'number' && val >= 80) ? 'var(--red)'  : (typeof val === 'number' && val >= riskThreshold) ? 'var(--amber)' : 'var(--cyan)';
 
-  const filteredNodes = nodes.filter(node => {
+  const filteredNodes = (nodes || []).filter(node => {
+    if (!node || !node.id) return false;
     const q = searchQuery.trim().toLowerCase();
     if (q && !node.id.toLowerCase().includes(q) && !(node.type || '').toLowerCase().includes(q)) return false;
     if (statusFilter === 'all')     return true;
@@ -77,7 +78,7 @@ export function NodeGrid() {
             const sc = riskColor(node.risk);
             const isGpu = (node.gpu !== undefined && node.gpu !== null) || node.gpu_name || (node.type || '').toLowerCase().match(/gpu|rtx|gtx|radeon|amd|intel|iris|arc/);
             const isSelected = node.id === selectedRiskNodeId;
-            const assignedJobs = workloadJobs.filter(j => j.node === node.id);
+            const assignedJobs = (workloadJobs || []).filter(j => j && j.node === node.id);
             const conn = node.source === 'real' ? (node.connection || (node.lastSeen ? 'offline' : 'waiting')) : 'online';
             const srcClass = conn === 'online' ? 'src-online' : conn === 'offline' ? 'src-offline' : 'src-waiting';
 
