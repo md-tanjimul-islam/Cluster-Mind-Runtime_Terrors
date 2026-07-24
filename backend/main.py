@@ -370,15 +370,19 @@ def inject_scenario(req: ScenarioRequest):
 
     return {"ok": True, "scenario": stype, "incident": state["incident"]}
 
+class HealRequest(BaseModel):
+    node: Optional[str] = None
+    target: Optional[str] = None
+
 @app.post("/api/heal")
-def complete_healing():
+def complete_healing(req: Optional[HealRequest] = None):
     """Executes autonomous IsolationForest checkpoint & workload migration rebalance across nodes."""
-    inc_node = state["incident"].get("node") if state["incident"] else "gpu-worker-02"
-    target_node = state["incident"].get("target", "gpu-worker-01") if state["incident"] else "gpu-worker-01"
+    inc_node = (req.node if req and req.node else None) or (state["incident"].get("node") if state["incident"] else "gpu-worker-02")
+    target_node = (req.target if req and req.target else None) or (state["incident"].get("target", "gpu-worker-01") if state["incident"] else "gpu-worker-01")
 
     # Re-assign workloads from high-risk node to target node
     for w in state["workloads"]:
-        if w.get("node") == inc_node or w.get("status") == "Migrating":
+        if w.get("node") == inc_node or (w.get("status") == "Migrating" and w.get("node") == inc_node):
             w["node"] = target_node
             w["status"] = "Running"
             w["progress"] = f"Active on {target_node}"
@@ -391,7 +395,9 @@ def complete_healing():
             n["temp"] = min(62, n.get("temp", 62))
             n["cpu"] = min(45, n.get("cpu", 45))
 
-    state["incident"] = None
+    if state["incident"] and state["incident"].get("node") == inc_node:
+        state["incident"] = None
+
     state["impact"]["prevented"] += 1
     state["impact"]["savings"] += 1180
 
@@ -402,7 +408,7 @@ def complete_healing():
         "time": "Just now"
     })
 
-    return {"ok": True, "impact": state["impact"]}
+    return {"ok": True, "healed_node": inc_node, "target_node": target_node, "impact": state["impact"]}
 
 @app.post("/api/delete")
 def delete_node(req: DeleteRequest):

@@ -196,20 +196,40 @@ export function ClusterProvider({ children }) {
     }
   };
 
-  // Auto-Healing Complete Action connected to FastAPI
-  const completeHealing = async () => {
+  // Auto-Healing Complete Action connected to FastAPI (Supports real physical nodes and simulated nodes)
+  const completeHealing = async (targetNodeIdToHeal) => {
+    let nodeToHeal = targetNodeIdToHeal;
+    if (!nodeToHeal) {
+      if (incident && incident.node) nodeToHeal = incident.node;
+      else {
+        const atRisk = nodes.find(n => n.risk >= 65 || n.status === 'critical');
+        nodeToHeal = atRisk ? atRisk.id : 'gpu-worker-02';
+      }
+    }
+
+    const healthyTarget = nodes.find(n => n.id !== nodeToHeal && n.connection !== 'offline' && n.risk < 45)?.id || 'gpu-worker-01';
+
     try {
-      await fetch(`${API_BASE}/api/heal`, { method: 'POST' });
+      await fetch(`${API_BASE}/api/heal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ node: nodeToHeal, target: healthyTarget })
+      });
     } catch {}
 
-    setIncident(null);
-    setNodes(prev => prev.map(n => n.id === 'gpu-worker-02' ? { ...n, temp: 62, ram: 54, cpu: 45, risk: 14, status: 'healthy' } : n));
+    if (incident && incident.node === nodeToHeal) {
+      setIncident(null);
+    }
+
+    setNodes(prev => prev.map(n => n.id === nodeToHeal ? { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, status: 'healthy' } : n));
+    setWorkloadJobs(prev => prev.map(j => j.node === nodeToHeal ? { ...j, node: healthyTarget, status: 'Running', progress: `Active on ${healthyTarget}` } : j));
+
     setImpact(prev => ({ ...prev, prevented: prev.prevented + 1, savings: prev.savings + 1180 }));
     setActivity(prev => [
-      { type: 'shield', title: 'Self-healing completed', detail: 'gpu-worker-02 restored in 24s · 0 data loss', time: 'Just now' },
+      { type: 'shield', title: `Self-healing completed for ${nodeToHeal}`, detail: `Workloads rebalanced to ${healthyTarget} · 0 data loss`, time: 'Just now' },
       ...prev
     ]);
-    addToast('Incident Resolved', 'Workloads rebalanced across healthy nodes', 'var(--green)');
+    addToast('Incident Resolved', `Workloads on ${nodeToHeal} migrated → ${healthyTarget}`, 'var(--green)');
     playSound(880, 0.25);
   };
 

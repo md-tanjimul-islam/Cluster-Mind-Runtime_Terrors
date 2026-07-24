@@ -2956,6 +2956,76 @@ body.light-mode .impact-kpi-item {
   grid-column: 1 / -1;
 }
 
+/* Multi-Node Healing Carousel & Slide Bar */
+.healing-carousel-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+body.light-mode .healing-carousel-strip {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+.healing-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+  flex: 1;
+}
+
+.healing-tabs-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.healing-tabs-scroll::-webkit-scrollbar-thumb {
+  background: var(--amber);
+  border-radius: 4px;
+}
+
+.healing-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.healing-tab-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.healing-tab-btn.active {
+  background: var(--amber-glow);
+  border-color: var(--amber);
+  color: var(--amber);
+  box-shadow: 0 0 12px rgba(255, 171, 0, 0.2);
+}
+
+.healing-carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .healing-stepper-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
