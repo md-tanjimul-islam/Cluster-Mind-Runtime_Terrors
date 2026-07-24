@@ -9,6 +9,7 @@ import { RiskPanel } from './components/dashboard/RiskPanel';
 import { JobsPanel } from './components/dashboard/JobsPanel';
 import { ActivityLog } from './components/dashboard/ActivityLog';
 import { ImpactChart } from './components/dashboard/ImpactChart';
+import { HealingProcessPanel } from './components/dashboard/HealingProcessPanel';
 
 import { ConnectNodeModal } from './components/modals/ConnectNodeModal';
 import { TopologyModal } from './components/modals/TopologyModal';
@@ -42,6 +43,7 @@ export function App() {
         <MetricsGrid />
 
         <section className="dashboard-grid" aria-label="Dashboard panels">
+          <HealingProcessPanel />
           <NodeGrid />
           <RiskPanel />
           <JobsPanel />
