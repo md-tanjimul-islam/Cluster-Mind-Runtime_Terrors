@@ -228,6 +228,13 @@ body.light-mode .topbar-center {
   50% { transform: scale(1.3); opacity: 0.6; }
 }
 
+.divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+  display: inline-block;
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;
@@ -536,6 +543,174 @@ nav {
   cursor: not-allowed;
 }
 
+.btn-ghost-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.btn-ghost-sm:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.btn-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-green 2s infinite;
+}
+
+/* Utility Classes */
+.font-mono { font-family: var(--font-mono); }
+
+.model-badge {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.risk-active-badge {
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: var(--cyan-glow);
+  color: var(--cyan);
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.confidence {
+  margin-top: 12px;
+}
+
+.conf-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease;
+}
+
+.conf-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Range Toggle (Impact Chart) */
+.range-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.range-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.range-btn.active {
+  background: var(--surface-hover);
+  color: var(--cyan);
+}
+
+.range-btn:hover:not(.active) {
+  color: var(--text);
+}
+
+/* Sparkle animation dot on metric cards */
+.sparklet {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--cyan-glow), transparent);
+  animation: pulse-green 3s infinite;
+}
+
+/* Spin animation for loading icons */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Empty state for node/job grids */
+.nodes-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  grid-column: 1 / -1;
+}
+
+/* Node dot indicator */
+.node-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc, var(--green));
+  flex-shrink: 0;
+  box-shadow: 0 0 8px var(--sc, var(--green));
+}
+
+.node-ident {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Critical node styling */
+.risk-critical {
+  border-color: var(--red) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 23, 68, 0.15), 0 0 20px rgba(255, 23, 68, 0.1);
+}
+
+/* Job controls wrapper */
+.job-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Metrics Grid */
 .metrics-grid {
   display: grid;
@@ -610,17 +785,12 @@ nav {
   border-radius: var(--radius-full);
 }
 
-/* Dashboard Panel Layout */
+/* Dashboard Panel Layout — 3-column architecture */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 1100px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
 }
 
 .panel {
@@ -653,7 +823,8 @@ nav {
    Node Health Grid Component
    ========================================================================== */
 .node-panel {
-  grid-column: span 1;
+  grid-column: span 2;
+  min-height: 0;
 }
 
 .node-controls {
@@ -729,9 +900,9 @@ nav {
 
 .node-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  max-height: 520px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  max-height: 560px;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
@@ -882,6 +1053,7 @@ nav {
    ========================================================================== */
 .risk-panel {
   grid-column: span 1;
+  min-height: 0;
 }
 
 .risk-layout {
@@ -1039,13 +1211,7 @@ nav {
    Active Workloads Job Registry
    ========================================================================== */
 .jobs-panel {
-  grid-column: span 2;
-}
-
-@media (max-width: 1100px) {
-  .jobs-panel {
-    grid-column: span 1;
-  }
+  grid-column: span 3;
 }
 
 .job-counter-badge {
@@ -1177,14 +1343,35 @@ nav {
 .status-standby { background: var(--surface-hover); color: var(--text-muted); }
 
 /* Audit Log & Impact */
-.activity-panel, .impact-panel {
+.activity-panel {
   grid-column: span 1;
+}
+
+.impact-panel {
+  grid-column: span 2;
 }
 
 .act-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyan) rgba(15, 23, 42, 0.6);
+}
+
+.act-list::-webkit-scrollbar {
+  width: 5px;
+}
+.act-list::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+.act-list::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 4px;
 }
 
 .act-row {
@@ -2766,7 +2953,7 @@ body.light-mode .impact-kpi-item {
    Healing Process Stepper Grid & Bottom Bar
    ========================================================================== */
 .healing-panel {
-  grid-column: span 3;
+  grid-column: 1 / -1;
 }
 
 .healing-stepper-grid {
@@ -2841,7 +3028,21 @@ body.light-mode .impact-kpi-item {
 }
 
 /* ==========================================================================
-   1200px — Slight compression for smaller laptops
+   RESPONSIVE DESIGN — Senior-Level Multi-Breakpoint Architecture
+   Desktop(3-col) → Laptop(2-col) → Tablet(1-col) → Phone → Small Phone
+   ========================================================================== */
+
+/* ==========================================================================
+   1440px — Large laptop: slight compression
+   ========================================================================== */
+@media (max-width: 1440px) {
+  .dashboard-grid {
+    gap: 18px;
+  }
+}
+
+/* ==========================================================================
+   1200px — Standard laptop: 2-column dashboard grid
    ========================================================================== */
 @media (max-width: 1200px) {
   #main {
@@ -2850,6 +3051,35 @@ body.light-mode .impact-kpi-item {
 
   .hero h1 {
     font-size: 1.75rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .healing-panel {
+    grid-column: 1 / -1;
+  }
+
+  .node-panel {
+    grid-column: 1 / -1;
+  }
+
+  .risk-panel {
+    grid-column: span 1;
+  }
+
+  .jobs-panel {
+    grid-column: 1 / -1;
+  }
+
+  .activity-panel {
+    grid-column: span 1;
+  }
+
+  .impact-panel {
+    grid-column: span 1;
   }
 
   .gauge-grid {
@@ -2866,7 +3096,7 @@ body.light-mode .impact-kpi-item {
 }
 
 /* ==========================================================================
-   1024px — Tablet: collapse dashboard to single column
+   1024px — Tablet landscape: single column dashboard
    ========================================================================== */
 @media (max-width: 1024px) {
   :root {
@@ -2899,7 +3129,11 @@ body.light-mode .impact-kpi-item {
   }
 
   .healing-panel,
-  .jobs-panel {
+  .node-panel,
+  .risk-panel,
+  .jobs-panel,
+  .activity-panel,
+  .impact-panel {
     grid-column: span 1;
   }
 
@@ -2911,13 +3145,21 @@ body.light-mode .impact-kpi-item {
     gap: 14px;
   }
 
+  .impact-detail-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .node-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
   .demo-preset-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 /* ==========================================================================
-   768px — Mobile: sidebar becomes off-canvas drawer
+   768px — Mobile: sidebar off-canvas, full-width content
    ========================================================================== */
 @media (max-width: 768px) {
   /* ---- Topbar ---- */
@@ -2941,7 +3183,7 @@ body.light-mode .impact-kpi-item {
     font-size: 1.1rem;
   }
 
-  /* ---- Sidebar becomes off-canvas drawer ---- */
+  /* ---- Sidebar off-canvas drawer ---- */
   .sidebar {
     position: fixed;
     top: 0;
@@ -2951,7 +3193,7 @@ body.light-mode .impact-kpi-item {
     transform: translateX(-100%);
     transition: transform var(--transition-normal);
     z-index: 200;
-    padding-top: 60px; /* space for close button */
+    padding-top: 60px;
     box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
   }
 
@@ -2967,7 +3209,6 @@ body.light-mode .impact-kpi-item {
     display: flex;
   }
 
-  /* Always show nav labels in mobile drawer */
   body.sidebar-mini .nav-label,
   body.sidebar-mini .health-widget,
   body.sidebar-mini .demo-btn span {
@@ -2979,7 +3220,7 @@ body.light-mode .impact-kpi-item {
     padding: 10px 14px;
   }
 
-  /* ---- Main content takes full width ---- */
+  /* ---- Main content full width ---- */
   #main {
     margin-left: 0 !important;
     margin-top: var(--topbar-h);
@@ -3016,17 +3257,22 @@ body.light-mode .impact-kpi-item {
   }
 
   .metric-card {
-    padding: 16px;
-    gap: 12px;
+    padding: 14px;
+    gap: 10px;
   }
 
   .metric-val {
     font-size: 1.25rem;
   }
 
-  /* ---- Dashboard panels: single column, less padding ---- */
+  .metric-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* ---- Dashboard panels ---- */
   .panel {
-    padding: 18px;
+    padding: 16px;
   }
 
   .panel-header {
@@ -3035,6 +3281,12 @@ body.light-mode .impact-kpi-item {
     gap: 12px;
   }
 
+  .panel-title {
+    font-size: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* ---- Healing panel ---- */
   .healing-stepper-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3049,19 +3301,17 @@ body.light-mode .impact-kpi-item {
     justify-content: space-between;
   }
 
-  .impact-detail-bar {
-    grid-template-columns: 1fr;
-  }
-
-  /* ---- Node grid: 1 column on mobile ---- */
+  /* ---- Node panel ---- */
   .node-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    max-height: 480px;
   }
 
   .node-controls {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 8px;
+    width: 100%;
   }
 
   .node-search-wrap {
@@ -3070,6 +3320,26 @@ body.light-mode .impact-kpi-item {
 
   .node-search {
     width: 100%;
+    flex: 1;
+  }
+
+  .filter-pills {
+    flex-wrap: wrap;
+  }
+
+  .add-node-btn {
+    align-self: flex-start;
+  }
+
+  /* ---- Risk panel ---- */
+  .risk-layout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gauge-wrap {
+    width: 100px;
+    height: 100px;
   }
 
   /* ---- Jobs panel ---- */
@@ -3081,23 +3351,27 @@ body.light-mode .impact-kpi-item {
   }
 
   .job-meta {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     width: 100%;
   }
 
-  /* ---- Risk panel gauge ---- */
-  .risk-layout {
-    flex-direction: column;
-    align-items: flex-start;
+  .job-controls {
+    width: 100%;
   }
 
-  .gauge-wrap {
-    width: 100px;
-    height: 100px;
+  /* ---- Impact panel ---- */
+  .impact-detail-bar {
+    grid-template-columns: 1fr;
   }
 
-  /* ---- Inspector modal telemetry gauges ---- */
+  /* ---- Activity log ---- */
+  .act-list {
+    max-height: 320px;
+  }
+
+  /* ---- Inspector modal gauges ---- */
   .gauge-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
@@ -3108,7 +3382,6 @@ body.light-mode .impact-kpi-item {
     gap: 10px;
   }
 
-  /* ---- Inspector tab bar: 2x2 grid ---- */
   .insp-tab-bar {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 6px !important;
@@ -3119,7 +3392,7 @@ body.light-mode .impact-kpi-item {
     grid-template-columns: 1fr 1fr;
   }
 
-  /* ---- Modals ---- */
+  /* ---- Modals: bottom-sheet ---- */
   .modal-backdrop {
     padding: 12px;
     align-items: flex-end;
@@ -3206,10 +3479,44 @@ body.light-mode .impact-kpi-item {
     width: 100%;
   }
 
-  /* ---- Topology / Explain modals ---- */
   .modal-foot-nextgen {
     flex-direction: column;
     gap: 10px;
+  }
+}
+
+/* ==========================================================================
+   600px — Large phone: further layout adjustments
+   ========================================================================== */
+@media (max-width: 600px) {
+  .node-grid {
+    grid-template-columns: 1fr;
+    max-height: 460px;
+  }
+
+  .healing-stepper-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .impact-hover-tooltip {
+    display: none;
+  }
+
+  .chart-wrap {
+    padding-left: 28px;
+  }
+
+  .chart-y span {
+    font-size: 0.6rem;
+  }
+
+  .signal-row {
+    font-size: 0.6875rem;
+  }
+
+  .sig-bar {
+    margin: 0 8px;
   }
 }
 
@@ -3218,7 +3525,7 @@ body.light-mode .impact-kpi-item {
    ========================================================================== */
 @media (max-width: 480px) {
   :root {
-    --topbar-h: 60px;
+    --topbar-h: 56px;
   }
 
   .topbar {
@@ -3226,13 +3533,97 @@ body.light-mode .impact-kpi-item {
   }
 
   .brand span {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 0.75rem;
   }
 
   #main {
-    padding: 12px;
+    padding: 10px;
   }
 
+  .hero {
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: 1.2rem;
+  }
+
+  .hero-sub {
+    font-size: 0.8125rem;
+  }
+
+  .hero-actions .btn {
+    font-size: 0.8125rem;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .hero-actions .btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ---- Metrics: 1 column ---- */
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .metric-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .metric-val {
+    font-size: 1.1rem;
+  }
+
+  .metric-tag {
+    top: 10px;
+    right: 10px;
+    font-size: 0.6875rem;
+  }
+
+  /* ---- Panels ---- */
+  .panel {
+    padding: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .dashboard-grid {
+    gap: 12px;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+  }
+
+  .panel-title {
+    font-size: 0.9375rem;
+  }
+
+  /* ---- Healing stepper: 1 col ---- */
   .healing-stepper-grid {
     grid-template-columns: 1fr;
   }
@@ -3243,21 +3634,97 @@ body.light-mode .impact-kpi-item {
     gap: 8px;
   }
 
-  /* ---- Metrics: stack to 1 column on very small screens ---- */
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  /* ---- Node cards ---- */
+  .node-card {
+    padding: 12px;
   }
 
-  .hero h1 {
+  .node-ident strong {
+    font-size: 0.875rem;
+  }
+
+  .node-risk {
+    font-size: 1rem;
+  }
+
+  /* ---- Jobs ---- */
+  .job-meta {
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    gap: 8px;
+  }
+
+  .job-left {
+    gap: 10px;
+  }
+
+  .job-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .job-id {
+    font-size: 0.8125rem;
+  }
+
+  /* ---- Risk panel ---- */
+  .risk-layout {
+    gap: 14px;
+  }
+
+  .gauge-wrap {
+    width: 90px;
+    height: 90px;
+  }
+
+  .gauge-val {
     font-size: 1.25rem;
   }
 
-  .panel {
-    padding: 14px;
-    border-radius: var(--radius-md);
+  .injector-btns {
+    grid-template-columns: 1fr;
   }
 
-  /* ---- Inspector: 1 column gauges ---- */
+  /* ---- Impact chart ---- */
+  .impact-detail-bar {
+    gap: 6px;
+  }
+
+  .impact-kpi-item {
+    padding: 6px 8px;
+  }
+
+  .impact-kpi-val {
+    font-size: 0.75rem;
+  }
+
+  .range-toggle {
+    gap: 4px;
+  }
+
+  .range-btn {
+    font-size: 0.6875rem;
+    padding: 4px 8px;
+  }
+
+  /* ---- Activity log ---- */
+  .act-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+
+  .act-time {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
+  .act-list {
+    max-height: 280px;
+  }
+
+  /* ---- Inspector gauges ---- */
   .gauge-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3279,7 +3746,6 @@ body.light-mode .impact-kpi-item {
     align-self: flex-start;
   }
 
-  /* Wizard title row stack */
   .wiz-title-row {
     gap: 10px;
   }
@@ -3295,32 +3761,69 @@ body.light-mode .impact-kpi-item {
     font-size: 1.1rem;
   }
 
-  /* Demo preset: single column */
   .demo-preset-grid {
     grid-template-columns: 1fr;
   }
 
-  /* Risk score card: stack vertically */
   .risk-score-card {
     flex-direction: column;
     gap: 12px;
   }
 
-  /* Jobs card */
-  .job-meta {
-    grid-template-columns: repeat(2, 1fr);
-    display: grid;
+  /* Filter pills scroll on small screens */
+  .filter-pills {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    max-width: 100%;
   }
 
-  /* Activity log */
-  .act-row {
-    flex-wrap: wrap;
+  .filter-pills::-webkit-scrollbar {
+    display: none;
   }
 
-  .act-time {
-    width: 100%;
-    margin-left: 0;
-    margin-top: 4px;
+  .pill {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+/* ==========================================================================
+   360px — Tiny phones (iPhone SE, Galaxy S series)
+   ========================================================================== */
+@media (max-width: 360px) {
+  #main {
+    padding: 8px;
+  }
+
+  .hero h1 {
+    font-size: 1.1rem;
+  }
+
+  .panel {
+    padding: 10px;
+  }
+
+  .node-grid {
+    max-height: 400px;
+  }
+
+  .metric-card {
+    padding: 10px;
+  }
+
+  .metric-val {
+    font-size: 1rem;
+  }
+
+  .healing-step-card {
+    padding: 10px !important;
+  }
+
+  .btn {
+    font-size: 0.8125rem;
+    padding: 8px 12px;
   }
 }
 

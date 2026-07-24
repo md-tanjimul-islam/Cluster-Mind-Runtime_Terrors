@@ -85,7 +85,7 @@ export function HealingProcessPanel() {
 
   if (!hasActiveIncident) {
     return (
-      <article className="panel healing-panel" style={{ gridColumn: 'span 3', border: '1px solid var(--border)' }}>
+      <article className="panel healing-panel" style={{ border: '1px solid var(--border)' }}>
         <div className="panel-header">
           <div>
             <p className="eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -135,7 +135,7 @@ export function HealingProcessPanel() {
   }
 
   return (
-    <article className="panel healing-panel healing-panel-active" style={{ gridColumn: 'span 3', border: '1px solid var(--amber)', background: 'color-mix(in srgb, var(--amber) 4%, var(--surface))' }}>
+    <article className="panel healing-panel healing-panel-active" style={{ border: '1px solid var(--amber)', background: 'color-mix(in srgb, var(--amber) 4%, var(--surface))' }}>
       <div className="panel-header">
         <div>
           <p className="eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--amber)' }}>
