@@ -181,7 +181,7 @@ export function HealingProcessPanel() {
       </div>
 
       {/* 6-Stage Interactive Stepper Pipeline */}
-      <div className="healing-stepper-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginTop: '14px' }}>
+      <div className="healing-stepper-grid">
         {HEALING_STAGES.map((stage) => {
           const isDone = activeStage > stage.id;
           const isCurrent = activeStage === stage.id;
@@ -204,6 +204,7 @@ export function HealingProcessPanel() {
           return (
             <div
               key={stage.id}
+              className="healing-step-card"
               style={{
                 background: bgColor,
                 border: `1px solid ${borderColor}`,
@@ -243,7 +244,7 @@ export function HealingProcessPanel() {
       </div>
 
       {/* Process Migration Detail Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed var(--border)' }}>
+      <div className="healing-bottom-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Cpu style={{ width: '16px', height: '16px', color: 'var(--cyan)' }} />
           <span style={{ fontSize: '0.8125rem', color: 'var(--text)' }}>
@@ -251,9 +252,9 @@ export function HealingProcessPanel() {
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+        <div className="healing-bottom-meta">
           <span>Checkpoint Size: <strong>1.4 GB</strong></span>
-          <span>Zero-Downtime Guarantee: <strong>100%</strong></span>
+          <span>Zero-Downtime: <strong>100%</strong></span>
           <button className="btn-ghost-sm" onClick={completeHealing} style={{ color: 'var(--green)', border: '1px solid var(--green)' }}>
             Force Instant Resolve
           </button>
