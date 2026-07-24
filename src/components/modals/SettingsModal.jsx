@@ -13,7 +13,7 @@ export function SettingsModal() {
   } = useCluster();
 
   // Local settings state initialized from localStorage/context
-  const [backendUrl, setBackendUrl] = useState(() => localStorage.getItem('clustermind-backend-url') || 'https://clustermind-backend-s51y.onrender.com');
+  const [backendUrl, setBackendUrl] = useState(() => localStorage.getItem('clustermind-backend-url') || '');
   const [pollInterval, setPollInterval] = useState(() => localStorage.getItem('clustermind-poll-interval') || '2000');
   const [localRiskThreshold, setLocalRiskThreshold] = useState(() => contextRiskThreshold || parseInt(localStorage.getItem('clustermind-risk-threshold')) || 65);
   const [autoHealMode, setAutoHealMode] = useState(() => localStorage.getItem('clustermind-autoheal-mode') || 'auto'); // 'auto' | 'manual'
@@ -45,7 +45,12 @@ export function SettingsModal() {
     const cleanBackend = backendUrl.trim().replace(/\/+$/, '');
     const parsedThreshold = parseInt(localRiskThreshold, 10) || 65;
     
-    localStorage.setItem('clustermind-backend-url', cleanBackend);
+    if (cleanBackend) {
+      localStorage.setItem('clustermind-backend-url', cleanBackend);
+    } else {
+      localStorage.removeItem('clustermind-backend-url');
+    }
+
     localStorage.setItem('clustermind-poll-interval', pollInterval || '2000');
     localStorage.setItem('clustermind-risk-threshold', parsedThreshold.toString());
     localStorage.setItem('clustermind-autoheal-mode', autoHealMode);
@@ -123,8 +128,7 @@ export function SettingsModal() {
                     className="wiz-input font-mono"
                     value={backendUrl}
                     onChange={e => setBackendUrl(e.target.value)}
-                    placeholder="https://clustermind-backend-s51y.onrender.com"
-                    required
+                    placeholder="Auto (e.g. https://clustermind-backend-s51y.onrender.com)"
                   />
                 </label>
 

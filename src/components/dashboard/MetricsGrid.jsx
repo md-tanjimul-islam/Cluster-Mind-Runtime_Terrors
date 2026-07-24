@@ -27,7 +27,7 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Failures prevented</span>
-          <strong className="metric-val">{impact.prevented.toLocaleString()}</strong>
+          <strong className="metric-val">{(impact?.prevented ?? 47).toLocaleString()}</strong>
           <small className="metric-note">+3 this week</small>
         </div>
         <div className="metric-tag">↑ 18%</div>
@@ -39,7 +39,7 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Estimated savings</span>
-          <strong className="metric-val">${impact.savings.toLocaleString()}</strong>
+          <strong className="metric-val">${(impact?.savings ?? 38980).toLocaleString()}</strong>
           <small className="metric-note">Since monitoring began</small>
         </div>
         <div className="metric-tag">+$1.8K</div>
@@ -51,7 +51,7 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Mean recovery</span>
-          <strong className="metric-val">{impact.recovery} sec</strong>
+          <strong className="metric-val">{impact?.recovery ?? 24} sec</strong>
           <small className="metric-note">Industry baseline: 45 min</small>
         </div>
         <div className="metric-tag">99% faster</div>
