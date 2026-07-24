@@ -1,6 +1,12 @@
+import os
+import sys
 import time
 import secrets
 from typing import Optional, List, Dict, Any
+
+# Ensure both workspace root & backend dir are on python module search path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
