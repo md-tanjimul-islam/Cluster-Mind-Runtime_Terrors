@@ -228,8 +228,10 @@ def predict_anomaly(req: PredictRequest):
     return {"ok": True, "prediction": res}
 
 @app.post("/api/ingest")
-def ingest_telemetry(data: dict = Body(...)):
+def ingest_telemetry(data: Optional[dict] = None):
     """Receives live agent telemetry packet, runs IsolationForest, and updates node state & workloads."""
+    if not data:
+        data = {}
     try:
         node_id = str(data.get("id") or "gpu-worker-04")
         token = data.get("token")
