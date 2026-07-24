@@ -552,4 +552,17 @@ def reset_system():
     state["workloads"] = copy.deepcopy(INITIAL_WORKLOAD_JOBS)
     state["tokens"] = {}
     state["risk_threshold"] = 65
-    return {"ok": True, "message": "Backend system reset to initial baseline state"}
+@app.post("/api/nodes/clear-all")
+def clear_all_nodes():
+    """Wipes all cluster nodes & workloads so operators can run pure real-device hardware tests."""
+    state["nodes"] = []
+    state["workloads"] = []
+    state["incident"] = None
+    state["tokens"] = {}
+    state["activity"].insert(0, {
+        "type": "alert",
+        "title": "Pure Real-Device Mode Activated",
+        "detail": "All synthetic demo nodes cleared · Waiting for physical telemetry agents",
+        "time": "Just now"
+    })
+    return {"ok": True, "message": "All nodes cleared for pure real-device hardware monitoring"}

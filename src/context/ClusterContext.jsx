@@ -105,15 +105,23 @@ export function ClusterProvider({ children }) {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
+        const isPureRealMode = localStorage.getItem('clustermind-pure-real-mode') === 'true';
         const res = await fetch(`${API_BASE}/api/status`);
         if (res.ok) {
           const data = await res.json();
           if (data && data.nodes && Array.isArray(data.nodes)) {
-            const validServerNodes = data.nodes.filter(n => n && typeof n.id === 'string' && n.id.trim() !== '');
+            let validServerNodes = data.nodes.filter(n => n && typeof n.id === 'string' && n.id.trim() !== '');
+            if (isPureRealMode) {
+              validServerNodes = validServerNodes.filter(n => n.source === 'real');
+            }
             setNodes(prevNodes => {
               const serverNodeIds = new Set(validServerNodes.map(n => n.id.toLowerCase()));
               const localCustomNodes = (prevNodes || []).filter(n => n && typeof n.id === 'string' && !serverNodeIds.has(n.id.toLowerCase()));
               const merged = [...validServerNodes, ...localCustomNodes];
+              
+              if (isPureRealMode) {
+                return merged.filter(n => n.source === 'real');
+              }
               
               // Persist local custom nodes in localStorage safely
               try {
@@ -319,6 +327,7 @@ export function ClusterProvider({ children }) {
   const resetSystem = async () => {
     try {
       localStorage.removeItem('clustermind-custom-nodes');
+      localStorage.removeItem('clustermind-pure-real-mode');
       localStorage.setItem('clustermind-risk-threshold', '65');
       setRiskThreshold(65);
       await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
@@ -327,6 +336,17 @@ export function ClusterProvider({ children }) {
     setTimeout(() => {
       window.location.reload();
     }, 500);
+  };
+
+  const clearAllNodes = async () => {
+    setNodes(prev => (prev || []).filter(n => n && n.source === 'real'));
+    setWorkloadJobs([]);
+    setIncident(null);
+    localStorage.setItem('clustermind-pure-real-mode', 'true');
+    try {
+      await fetch(`${API_BASE}/api/nodes/clear-all`, { method: 'POST' });
+    } catch {}
+    addToast('Pure Real-Device Mode Active', 'Cleared synthetic nodes. Connect real physical hardware using terminal scripts.', 'var(--cyan)');
   };
 
   return (
@@ -348,7 +368,7 @@ export function ClusterProvider({ children }) {
       selectedNodeId, setSelectedNodeId,
       selectedRiskNodeId, setSelectedRiskNodeId,
       demoStep, setDemoStep,
-      injectScenario, completeHealing, addNode, deleteNode, playSound, resetSystem
+      injectScenario, completeHealing, addNode, deleteNode, playSound, resetSystem, clearAllNodes
     }}>
       {children}
     </ClusterContext.Provider>

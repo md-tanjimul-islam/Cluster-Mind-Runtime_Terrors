@@ -10,7 +10,8 @@ export function SettingsModal() {
     riskThreshold: contextRiskThreshold,
     setRiskThreshold: setContextRiskThreshold,
     addToast,
-    resetSystem
+    resetSystem,
+    clearAllNodes
   } = useCluster();
 
   // Local settings state initialized from localStorage/context
@@ -229,6 +230,43 @@ export function SettingsModal() {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Pure Real-Device Mode Section */}
+            <div className="wiz-section-card" style={{ borderColor: 'rgba(255, 171, 0, 0.3)', background: 'color-mix(in srgb, var(--amber) 5%, var(--surface))', marginBottom: '16px' }}>
+              <div className="wiz-card-header">
+                <div className="wiz-card-title">
+                  <Server style={{ width: '16px', height: '16px', color: 'var(--amber)' }} />
+                  <span>Pure Real-Device Mode (Clear Demo Nodes)</span>
+                </div>
+                <span className="wiz-step-pill" style={{ color: 'var(--amber)', borderColor: 'rgba(255, 171, 0, 0.4)' }}>REAL DEVICES ONLY</span>
+              </div>
+
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.4 }}>
+                Remove all synthetic demo nodes from the cluster. Use this mode when testing exclusively with physical hardware running live terminal telemetry agents.
+              </p>
+
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  if (typeof clearAllNodes === 'function') {
+                    clearAllNodes();
+                    setActiveModal('none');
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderColor: 'var(--amber)',
+                  color: 'var(--amber)',
+                  fontWeight: 700
+                }}
+              >
+                <Server style={{ width: '14px', height: '14px' }} />
+                <span>Clear All Nodes &amp; Activate Pure Real-Device Mode</span>
+              </button>
             </div>
 
             {/* System Baseline Recovery Reset Section */}
