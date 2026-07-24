@@ -34,6 +34,7 @@ export function ConnectNodeModal() {
   const [platform, setPlatform] = useState('windows'); // 'windows' | 'unix' | 'docker'
   const [token, setToken] = useState('');
   const [showToken, setShowToken] = useState(false);
+  const [backendUrl, setBackendUrl] = useState('https://clustermind-backend-s51y.onrender.com');
   const [lanIp, setLanIp] = useState('');
   const [lanPort, setLanPort] = useState('8080');
   const [formError, setFormError] = useState('');
@@ -77,18 +78,13 @@ export function ConnectNodeModal() {
 
   if (activeModal !== 'node') return null;
 
-  // Base server deployment origin (e.g. https://clustermind-frontend.onrender.com)
   const currentOrigin = window.location.origin;
   const isCloudDeployment = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
 
-  // Derive backend API URL (Render pairs clustermind-frontend with clustermind-backend)
-  const autoBackendUrl = currentOrigin.includes('-frontend')
-    ? currentOrigin.replace('-frontend', '-backend')
-    : currentOrigin;
-
-  const serverBaseUrl = (isCloudDeployment || !lanIp)
-    ? autoBackendUrl
-    : `http://${lanIp.trim()}:${lanPort}`;
+  // Exact Render Backend Service URL
+  const serverBaseUrl = backendUrl.trim()
+    ? backendUrl.trim().replace(/\/+$/, '')
+    : (isCloudDeployment ? 'https://clustermind-backend-s51y.onrender.com' : `http://${lanIp.trim() || '127.0.0.1'}:${lanPort}`);
 
   // Serve agent scripts & process API packets directly from Python FastAPI backend service
   const url      = `${serverBaseUrl}/api/ingest`;
@@ -440,30 +436,30 @@ export function ConnectNodeModal() {
                   <span className="wiz-step-pill">STEP 3 OF 3</span>
                 </div>
 
-                {/* Network IP & Port Configuration */}
+                {/* Network Endpoint Configuration */}
                 <div className="form-row-2" style={{ marginBottom: '12px' }}>
                   <label className="form-label" style={{ marginBottom: 0 }}>
-                    <span>Local Ingestion IPv4</span>
+                    <span>Backend Ingestion Service URL</span>
                     <div className="wiz-input-wrap">
                       <Wifi className="wiz-input-icon" />
                       <input
                         className="wiz-input font-mono"
-                        value={lanIp}
-                        onChange={e => setLanIp(e.target.value)}
-                        placeholder="192.168.1.100"
+                        value={backendUrl}
+                        onChange={e => setBackendUrl(e.target.value)}
+                        placeholder="https://clustermind-backend-s51y.onrender.com"
                       />
                     </div>
                   </label>
 
                   <label className="form-label" style={{ marginBottom: 0 }}>
-                    <span>Ingestion Port</span>
+                    <span>Fallback Local LAN IP</span>
                     <div className="wiz-input-wrap">
                       <Activity className="wiz-input-icon" />
                       <input
                         className="wiz-input font-mono"
-                        value={lanPort}
-                        onChange={e => setLanPort(e.target.value)}
-                        maxLength={5}
+                        value={lanIp}
+                        onChange={e => setLanIp(e.target.value)}
+                        placeholder="192.168.1.100"
                       />
                     </div>
                   </label>
