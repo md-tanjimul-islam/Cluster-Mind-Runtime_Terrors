@@ -176,6 +176,15 @@ def download_agent():
         return FileResponse(agent_path, media_type="text/x-python", filename="agent.py")
     raise HTTPException(status_code=404, detail="Agent script file not found")
 
+@app.get("/api/agent/ps1")
+@app.get("/agents/agent.ps1")
+def download_ps1_agent():
+    """Serves zero-dependency Windows PowerShell telemetry agent script."""
+    agent_path = os.path.join(os.path.dirname(__file__), "agent.ps1")
+    if os.path.exists(agent_path):
+        return FileResponse(agent_path, media_type="text/plain", filename="agent.ps1")
+    raise HTTPException(status_code=404, detail="PowerShell agent script file not found")
+
 class ConfigRequest(BaseModel):
     risk_threshold: Optional[int] = 65
 

@@ -87,11 +87,12 @@ export function ConnectNodeModal() {
     : (isCloudDeployment ? 'https://clustermind-backend-s51y.onrender.com' : `http://${lanIp.trim() || '127.0.0.1'}:${lanPort}`);
 
   // Serve agent scripts & process API packets directly from Python FastAPI backend service
-  const url        = `${serverBaseUrl}/api/ingest`;
-  const pyAgentUrl = `${serverBaseUrl}/api/agent/python`;
+  const url         = `${serverBaseUrl}/api/ingest`;
+  const pyAgentUrl  = `${serverBaseUrl}/api/agent/python`;
+  const ps1AgentUrl = `${serverBaseUrl}/api/agent/ps1`;
 
   const pyCommandStr     = `python3 -c "$(curl -fsSL ${pyAgentUrl})" --endpoint "${url}" --id "${nodeName || 'gpu-worker-04'}" --token "${token}"`;
-  const winCommandStr    = `powershell -Command "Invoke-WebRequest '${pyAgentUrl}' -OutFile agent.py; python agent.py --endpoint '${url}' --id '${nodeName || 'gpu-worker-04'}' --token '${token}'"`;
+  const winCommandStr    = `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-WebRequest '${ps1AgentUrl}' -OutFile agent.ps1; .\\agent.ps1 -Endpoint '${url}' -NodeId '${nodeName || 'Shanto'}' -Token '${token}'"`;
   const dockerCommandStr = `docker run -d --name cm-agent-${nodeName || 'worker'} --net=host python:3.11-slim sh -c "curl -fsSL ${pyAgentUrl} | python3 - --endpoint '${url}' --id '${nodeName || 'gpu-worker-04'}' --token '${token}'"`;
 
   const getActiveCommandStr = () => {
