@@ -90,11 +90,10 @@ export function ConnectNodeModal() {
     ? autoBackendUrl
     : `http://${lanIp.trim()}:${lanPort}`;
 
-  const staticBaseUrl = isCloudDeployment ? currentOrigin : serverBaseUrl;
-
+  // Serve agent scripts & process API packets directly from Python FastAPI backend service
   const url      = `${serverBaseUrl}/api/ingest`;
-  const agentUrl = `${staticBaseUrl}/agents/windows-agent.ps1`;
-  const instUrl  = `${staticBaseUrl}/agents/install-windows-agent.ps1`;
+  const agentUrl = `${serverBaseUrl}/agents/windows-agent.ps1`;
+  const instUrl  = `${serverBaseUrl}/agents/install-windows-agent.ps1`;
 
   const unixCommandStr   = `curl -X POST '${url}' -H 'Content-Type: application/json' -d '{"token":"${token}","id":"${nodeName || 'gpu-worker-04'}","cpu":42,"gpu":78,"ram":61,"temp":67}'`;
   const winCommandStr    = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'install-clustermind.ps1'; Invoke-WebRequest '${instUrl}' -OutFile $p; & $p -Endpoint '${url}' -AgentUrl '${agentUrl}' -Token '${token}' -NodeId '${nodeName || 'gpu-worker-04'}'"`;
