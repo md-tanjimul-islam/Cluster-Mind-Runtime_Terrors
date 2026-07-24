@@ -60,7 +60,8 @@ state = {
         {"type": "shield", "title": "Incident prevented", "detail": "$1,180 estimated compute saved", "time": "2h"}
     ],
     "workloads": INITIAL_WORKLOAD_JOBS,
-    "tokens": {}
+    "tokens": {},
+    "risk_threshold": 65
 }
 
 # Pydantic Schemas
@@ -145,19 +146,31 @@ def get_status():
                 disk_io=node.get("disk_io", 100.0),
                 net_jitter=node.get("net_jitter", 2.0),
                 gpu_temp=node["temp"],
-                gpu_util=node.get("gpu", 0.0)
+                gpu_util=node.get("gpu", 0.0),
+                risk_threshold=state.get("risk_threshold", 65)
             )
             node["risk"] = pred["risk"]
 
     return {
         "ok": True,
         "engine": "FastAPI + scikit-learn IsolationForest",
+        "risk_threshold": state.get("risk_threshold", 65),
         "nodes": state["nodes"],
         "incident": state["incident"],
         "impact": state["impact"],
         "activity": state["activity"],
         "workloads": state["workloads"]
     }
+
+class ConfigRequest(BaseModel):
+    risk_threshold: Optional[int] = 65
+
+@app.post("/api/config")
+def update_config(req: ConfigRequest):
+    """Updates global IsolationForest anomaly sensitivity threshold."""
+    if req.risk_threshold:
+        state["risk_threshold"] = req.risk_threshold
+    return {"ok": True, "risk_threshold": state["risk_threshold"]}
 
 @app.post("/api/predict")
 def predict_anomaly(req: PredictRequest):
@@ -168,7 +181,8 @@ def predict_anomaly(req: PredictRequest):
         disk_io=req.disk_io,
         net_jitter=req.net_jitter,
         gpu_temp=req.gpu_temp,
-        gpu_util=req.gpu_util
+        gpu_util=req.gpu_util,
+        risk_threshold=state.get("risk_threshold", 65)
     )
     return {"ok": True, "prediction": res}
 
@@ -198,13 +212,15 @@ def ingest_telemetry(pkt: TelemetryPacket):
         return {"ok": True, "status": "offline"}
 
     # Evaluate IsolationForest Model
+    thresh = state.get("risk_threshold", 65)
     pred = anomaly_engine.predict_risk(
         cpu=pkt.cpu,
         ram=pkt.ram,
         disk_io=pkt.disk_io or 100.0,
         net_jitter=pkt.net_jitter or 2.0,
         gpu_temp=pkt.temp,
-        gpu_util=pkt.gpu or 0.0
+        gpu_util=pkt.gpu or 0.0,
+        risk_threshold=thresh
     )
 
     # Update or add node in registry
@@ -285,7 +301,7 @@ def ingest_telemetry(pkt: TelemetryPacket):
                 }
             ])
     # IsolationForest Real-Time Workload Migration for Real Devices
-    if pred["risk"] >= 65:
+    if pred["risk"] >= thresh:
         target_node = next((n["id"] for n in state["nodes"] if n["id"] != pkt.id and n.get("connection") == "online" and n.get("risk", 0) < 45), "gpu-worker-01")
         
         state["incident"] = {

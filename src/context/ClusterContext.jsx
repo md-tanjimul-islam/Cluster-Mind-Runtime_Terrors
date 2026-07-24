@@ -69,6 +69,19 @@ export function ClusterProvider({ children }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [jobFilter, setJobFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [riskThreshold, setRiskThreshold] = useState(() => parseInt(localStorage.getItem('clustermind-risk-threshold')) || 65);
+
+  // Sync riskThreshold with backend config
+  useEffect(() => {
+    localStorage.setItem('clustermind-risk-threshold', riskThreshold.toString());
+    try {
+      fetch(`${API_BASE}/api/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ risk_threshold: riskThreshold })
+      });
+    } catch {}
+  }, [riskThreshold]);
   
   // Modals & Active Selections
   const [activeModal, setActiveModal] = useState('none');
@@ -299,6 +312,7 @@ export function ClusterProvider({ children }) {
       statusFilter, setStatusFilter,
       jobFilter, setJobFilter,
       searchQuery, setSearchQuery,
+      riskThreshold, setRiskThreshold,
       activeModal, setActiveModal,
       selectedNodeId, setSelectedNodeId,
       selectedRiskNodeId, setSelectedRiskNodeId,

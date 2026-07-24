@@ -3,7 +3,7 @@ import { useCluster } from '../../context/ClusterContext';
 import { Zap } from 'lucide-react';
 
 export function RiskPanel() {
-  const { nodes, selectedRiskNodeId, setSelectedRiskNodeId, injectScenario } = useCluster();
+  const { nodes, selectedRiskNodeId, setSelectedRiskNodeId, injectScenario, riskThreshold } = useCluster();
 
   let riskNode = null;
   if (selectedRiskNodeId) {
@@ -16,9 +16,9 @@ export function RiskPanel() {
   if (!riskNode) return null;
 
   const confidence = Math.min(98, Math.round(72 + riskNode.risk * 0.3));
-  const sc = riskNode.risk >= 65 ? 'var(--red)' : riskNode.risk >= 30 ? 'var(--amber)' : 'var(--green)';
-  const labelText  = riskNode.risk >= 65 ? 'Elevated Risk' : riskNode.risk >= 30 ? 'Under Watch' : 'Nominal';
-  const labelClass = riskNode.risk >= 65 ? 'tag-critical'  : riskNode.risk >= 30 ? 'tag-watch'   : 'tag-healthy';
+  const sc = riskNode.risk >= riskThreshold ? 'var(--red)' : riskNode.risk >= 30 ? 'var(--amber)' : 'var(--green)';
+  const labelText  = riskNode.risk >= riskThreshold ? 'Elevated Risk' : riskNode.risk >= 30 ? 'Under Watch' : 'Nominal';
+  const labelClass = riskNode.risk >= riskThreshold ? 'tag-critical'  : riskNode.risk >= 30 ? 'tag-watch'   : 'tag-healthy';
 
   const GAUGE_C = 2 * Math.PI * 55; // ~345.4
   const offset  = GAUGE_C * (1 - riskNode.risk / 100);
@@ -69,7 +69,7 @@ export function RiskPanel() {
           <span className={`status-tag ${labelClass}`}>{labelText}</span>
           <p className="risk-node">{riskNode.id}</p>
           <p className="risk-info">
-            {riskNode.risk >= 65
+            {riskNode.risk >= riskThreshold
               ? 'Multi-signal anomaly vector indicates impending failure within 38 minutes.'
               : riskNode.risk >= 30
               ? 'Elevated metric drift detected. Monitoring closely for checkpoint triggers.'

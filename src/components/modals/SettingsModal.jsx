@@ -7,16 +7,25 @@ export function SettingsModal() {
     activeModal, setActiveModal,
     theme, setTheme,
     sound, toggleSound,
+    riskThreshold: contextRiskThreshold,
+    setRiskThreshold: setContextRiskThreshold,
     addToast
   } = useCluster();
 
-  // Local settings state initialized from localStorage
+  // Local settings state initialized from localStorage/context
   const [backendUrl, setBackendUrl] = useState(() => localStorage.getItem('clustermind-backend-url') || 'https://clustermind-backend-s51y.onrender.com');
   const [pollInterval, setPollInterval] = useState(() => localStorage.getItem('clustermind-poll-interval') || '2000');
-  const [riskThreshold, setRiskThreshold] = useState(() => localStorage.getItem('clustermind-risk-threshold') || '65');
+  const [localRiskThreshold, setLocalRiskThreshold] = useState(() => contextRiskThreshold || parseInt(localStorage.getItem('clustermind-risk-threshold')) || 65);
   const [autoHealMode, setAutoHealMode] = useState(() => localStorage.getItem('clustermind-autoheal-mode') || 'auto'); // 'auto' | 'manual'
   const [themePreset, setThemePreset] = useState(() => localStorage.getItem('clustermind-theme') || 'dark');
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Keep local threshold in sync with context when modal opens
+  useEffect(() => {
+    if (activeModal === 'settings') {
+      setLocalRiskThreshold(contextRiskThreshold);
+    }
+  }, [activeModal, contextRiskThreshold]);
 
   // Esc key shortcut
   useEffect(() => {
@@ -34,31 +43,39 @@ export function SettingsModal() {
   const handleSaveSettings = (e) => {
     e.preventDefault();
     const cleanBackend = backendUrl.trim().replace(/\/+$/, '');
+    const oldBackend = localStorage.getItem('clustermind-backend-url');
     
+    const parsedThreshold = parseInt(localRiskThreshold);
     localStorage.setItem('clustermind-backend-url', cleanBackend);
     localStorage.setItem('clustermind-poll-interval', pollInterval);
-    localStorage.setItem('clustermind-risk-threshold', riskThreshold);
+    localStorage.setItem('clustermind-risk-threshold', parsedThreshold.toString());
     localStorage.setItem('clustermind-autoheal-mode', autoHealMode);
     localStorage.setItem('clustermind-theme', themePreset);
 
+    // Immediately update context state
+    setContextRiskThreshold(parsedThreshold);
     setTheme(themePreset);
+
     setSavedSuccess(true);
-    addToast('Settings Saved', 'ClusterMind configuration updated & applied', 'var(--cyan)');
+    addToast('Settings Saved', `IsolationForest anomaly sensitivity set to ${parsedThreshold}% trigger threshold`, 'var(--cyan)');
+    
     setTimeout(() => {
       setSavedSuccess(false);
       setActiveModal('none');
-      // Trigger a page reload if backend URL changed so context picks up new API target
-      window.location.reload();
-    }, 1000);
+      if (oldBackend && oldBackend !== cleanBackend) {
+        window.location.reload();
+      }
+    }, 800);
   };
 
   const handleResetDefaults = () => {
     setBackendUrl('https://clustermind-backend-s51y.onrender.com');
     setPollInterval('2000');
-    setRiskThreshold('65');
+    setLocalRiskThreshold(65);
+    setContextRiskThreshold(65);
     setAutoHealMode('auto');
     setThemePreset('dark');
-    addToast('Defaults Restored', 'Configuration reset to nominal baseline', 'var(--amber)');
+    addToast('Defaults Restored', 'IsolationForest sensitivity reset to 65% trigger baseline', 'var(--amber)');
   };
 
   return (
@@ -148,13 +165,13 @@ export function SettingsModal() {
                   <Shield style={{ width: '16px', height: '16px', color: 'var(--amber)' }} />
                   <span>IsolationForest Anomaly Sensitivity</span>
                 </div>
-                <span className="wiz-step-pill">{riskThreshold}% THRESHOLD</span>
+                <span className="wiz-step-pill">{localRiskThreshold}% THRESHOLD</span>
               </div>
 
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                  <span>Strict (50% Anomaly Trigger)</span>
-                  <span style={{ fontWeight: 700, color: 'var(--amber)' }}>Selected: {riskThreshold}% Risk Index</span>
+                  <span>Strict (45% Anomaly Trigger)</span>
+                  <span style={{ fontWeight: 700, color: 'var(--amber)' }}>Selected: {localRiskThreshold}% Risk Index</span>
                   <span>Conservative (85% Anomaly Trigger)</span>
                 </div>
                 <input
@@ -162,12 +179,12 @@ export function SettingsModal() {
                   min="45"
                   max="85"
                   step="5"
-                  value={riskThreshold}
-                  onChange={e => setRiskThreshold(e.target.value)}
+                  value={localRiskThreshold}
+                  onChange={e => setLocalRiskThreshold(e.target.value)}
                   style={{ width: '100%', accentColor: 'var(--cyan)', cursor: 'pointer' }}
                 />
                 <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '6px' }}>
-                  When IsolationForest multi-vector kernel anomaly score crosses {riskThreshold}%, ClusterMind initiates predictive workload migration.
+                  {localRiskThreshold <= 55 ? 'High Sensitivity (Strict): Triggers predictive workload migration at early telemetry drift.' : localRiskThreshold <= 70 ? 'Standard Sensitivity (Balanced): Nominal enterprise baseline (Default 65%).' : 'Low Sensitivity (Conservative): Triggers predictive workload migration only during severe spikes.'}
                 </p>
               </div>
             </div>

@@ -25,7 +25,7 @@ class ClusterAnomalyEngine:
         )
         self.model.fit(nominal_data)
 
-    def predict_risk(self, cpu: float, ram: float, disk_io: float, net_jitter: float, gpu_temp: float, gpu_util: float):
+    def predict_risk(self, cpu: float, ram: float, disk_io: float, net_jitter: float, gpu_temp: float, gpu_util: float, risk_threshold: float = 65.0):
         """
         Runs IsolationForest inference on a 6D telemetry vector.
         Returns composite anomaly score, risk percentage (0-100), and status tier.
@@ -47,7 +47,7 @@ class ClusterAnomalyEngine:
         else:
             risk = int(np.clip(72 + (-0.15 - raw_score) * 120, 72, 98))
 
-        if risk >= 65:
+        if risk >= risk_threshold:
             status = 'critical'
         elif risk >= 30:
             status = 'watch'

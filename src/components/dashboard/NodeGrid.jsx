@@ -8,12 +8,13 @@ export function NodeGrid() {
     statusFilter, setStatusFilter,
     searchQuery, setSearchQuery,
     workloadJobs,
+    riskThreshold,
     selectedRiskNodeId, setSelectedRiskNodeId,
     setSelectedNodeId, setActiveModal
   } = useCluster();
 
-  const riskColor = (risk) => risk >= 65 ? 'var(--red)' : risk >= 30 ? 'var(--amber)' : 'var(--green)';
-  const barColor  = (val)  => val >= 80 ? 'var(--red)'  : val >= 65 ? 'var(--amber)' : 'var(--cyan)';
+  const riskColor = (risk) => risk >= riskThreshold ? 'var(--red)' : risk >= 30 ? 'var(--amber)' : 'var(--green)';
+  const barColor  = (val)  => val >= 80 ? 'var(--red)'  : val >= riskThreshold ? 'var(--amber)' : 'var(--cyan)';
 
   const filteredNodes = nodes.filter(node => {
     const q = searchQuery.trim().toLowerCase();
@@ -83,7 +84,7 @@ export function NodeGrid() {
             return (
               <article
                 key={node.id}
-                className={`node-card ${node.risk >= 65 ? 'risk-critical' : ''} ${isSelected ? 'selected-risk-card' : ''} ${node.source ? 'has-src' : ''}`}
+                className={`node-card ${node.risk >= riskThreshold ? 'risk-critical' : ''} ${isSelected ? 'selected-risk-card' : ''} ${node.source ? 'has-src' : ''}`}
                 onClick={() => setSelectedRiskNodeId(node.id)}
                 style={{ '--sc': sc }}
               >

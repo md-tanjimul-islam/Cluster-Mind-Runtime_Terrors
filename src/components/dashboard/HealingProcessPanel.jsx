@@ -12,7 +12,7 @@ const HEALING_STAGES = [
 ];
 
 export function HealingProcessPanel() {
-  const { nodes, incident, completeHealing, addToast } = useCluster();
+  const { nodes, incident, completeHealing, riskThreshold, addToast } = useCluster();
 
   // Read auto-heal mode setting from localStorage ('auto' | 'manual')
   const [autoHealMode, setAutoHealMode] = useState(() => localStorage.getItem('clustermind-autoheal-mode') || 'auto');
@@ -25,9 +25,9 @@ export function HealingProcessPanel() {
   const [stageProgress, setStageProgress] = useState(0);
   const [isExecuting, setIsExecuting] = useState(false);
 
-  // Identify all nodes that require healing / workload migration
+  // Identify all nodes that require healing / workload migration using dynamic riskThreshold
   const atRiskNodes = nodes.filter(n => 
-    n.risk >= 65 || 
+    n.risk >= riskThreshold || 
     n.status === 'critical' || 
     (incident && incident.node === n.id)
   );
