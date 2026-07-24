@@ -2381,23 +2381,25 @@ nav {
   letter-spacing: 0.02em;
 }
 
-/* Nav Tabs */
+/* Nav Tabs (Horizontal Strip) */
 .insp-tab-bar {
-  display: flex;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 4px;
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 8px !important;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
 }
 
 .insp-tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 12px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 9px 12px !important;
   border-radius: var(--radius-sm);
   background: transparent;
   border: 1px solid transparent;
@@ -2405,11 +2407,13 @@ nav {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .insp-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
