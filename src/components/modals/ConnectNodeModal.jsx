@@ -87,17 +87,16 @@ export function ConnectNodeModal() {
     : (isCloudDeployment ? 'https://clustermind-backend-s51y.onrender.com' : `http://${lanIp.trim() || '127.0.0.1'}:${lanPort}`);
 
   // Serve agent scripts & process API packets directly from Python FastAPI backend service
-  const url      = `${serverBaseUrl}/api/ingest`;
-  const agentUrl = `${serverBaseUrl}/agents/windows-agent.ps1`;
-  const instUrl  = `${serverBaseUrl}/agents/install-windows-agent.ps1`;
+  const url        = `${serverBaseUrl}/api/ingest`;
+  const pyAgentUrl = `${serverBaseUrl}/api/agent/python`;
 
-  const unixCommandStr   = `curl -X POST '${url}' -H 'Content-Type: application/json' -d '{"token":"${token}","id":"${nodeName || 'gpu-worker-04'}","cpu":42,"gpu":78,"ram":61,"temp":67}'`;
-  const winCommandStr    = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'install-clustermind.ps1'; Invoke-WebRequest '${instUrl}' -OutFile $p; & $p -Endpoint '${url}' -AgentUrl '${agentUrl}' -Token '${token}' -NodeId '${nodeName || 'gpu-worker-04'}'"`;
-  const dockerCommandStr = `docker run -d --name cm-agent-${nodeName || 'worker'} --net=host -e NODE_ID="${nodeName || 'gpu-worker-04'}" -e INGEST_URL="${url}" -e TOKEN="${token}" clustermind/agent:latest`;
+  const pyCommandStr     = `python3 -c "$(curl -fsSL ${pyAgentUrl})" --endpoint "${url}" --id "${nodeName || 'gpu-worker-04'}" --token "${token}"`;
+  const winCommandStr    = `powershell -Command "Invoke-WebRequest '${pyAgentUrl}' -OutFile agent.py; python agent.py --endpoint '${url}' --id '${nodeName || 'gpu-worker-04'}' --token '${token}'"`;
+  const dockerCommandStr = `docker run -d --name cm-agent-${nodeName || 'worker'} --net=host python:3.11-slim sh -c "curl -fsSL ${pyAgentUrl} | python3 - --endpoint '${url}' --id '${nodeName || 'gpu-worker-04'}' --token '${token}'"`;
 
   const getActiveCommandStr = () => {
     if (platform === 'windows') return winCommandStr;
-    if (platform === 'unix') return unixCommandStr;
+    if (platform === 'unix') return pyCommandStr;
     return dockerCommandStr;
   };
 

@@ -2,6 +2,7 @@ import time
 import secrets
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Body
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -127,27 +128,31 @@ def get_status():
                     if w.get("node") == node["id"]:
                         w["status"] = "Offline / Stopped"
                         w["progress"] = "Heartbeat Timed Out"
-
-                if (now - last_seen) > 30:
-                    node["status"] = "critical"
-                    node["risk"] = 94
-
-        # 2. Organic Metric Jitter for Built-in Demo Nodes
-        elif node.get("source") == "built-in" and node["status"] != "critical":
-            node["cpu"] = max(10, min(98, node["cpu"] + random.randint(-2, 2)))
-            node["ram"] = max(15, min(95, node["ram"] + random.randint(-1, 1)))
-            if node.get("gpu", 0) > 0:
-                node["gpu"] = max(5, min(99, node["gpu"] + random.randint(-3, 3)))
-            node["temp"] = max(35, min(85, node["temp"] + random.randint(-1, 1)))
-
+            # If real node hasn't sent telemetry in over 15 seconds, mark offline
+            if now - node.get("last_seen", now) > 15:
+                node["connection"] = "offline"
+                node["status"] = "watch"
+                node["cpu"] = 0
+                node["gpu"] = 0
+                node["ram"] = 0
+                node["temp"] = 0
+                node["jobs"] = 0
+            else:
+                node["connection"] = "online"
+        elif node.get("source") == "demo" and node.get("status") != "critical":
+            node["cpu"] = max(12, min(96, node["cpu"] + random.choice([-2, -1, 0, 1, 2])))
+            node["ram"] = max(15, min(94, node["ram"] + random.choice([-1, 0, 1])))
+            node["temp"] = max(38, min(84, node["temp"] + random.choice([-1, 0, 1])))
+            
+            thresh = state.get("risk_threshold", 65)
             pred = anomaly_engine.predict_risk(
                 cpu=node["cpu"],
                 ram=node["ram"],
-                disk_io=node.get("disk_io", 100.0),
-                net_jitter=node.get("net_jitter", 2.0),
+                disk_io=100.0,
+                net_jitter=2.0,
                 gpu_temp=node["temp"],
                 gpu_util=node.get("gpu", 0.0),
-                risk_threshold=state.get("risk_threshold", 65)
+                risk_threshold=thresh
             )
             node["risk"] = pred["risk"]
 
@@ -161,6 +166,15 @@ def get_status():
         "activity": state["activity"],
         "workloads": state["workloads"]
     }
+
+@app.get("/api/agent/python")
+@app.get("/agents/agent.py")
+def download_agent():
+    """Serves universal Python telemetry agent script for real hardware devices."""
+    agent_path = os.path.join(os.path.dirname(__file__), "agent.py")
+    if os.path.exists(agent_path):
+        return FileResponse(agent_path, media_type="text/x-python", filename="agent.py")
+    raise HTTPException(status_code=404, detail="Agent script file not found")
 
 class ConfigRequest(BaseModel):
     risk_threshold: Optional[int] = 65
