@@ -93,10 +93,30 @@ class ScenarioRequest(BaseModel):
 class DeleteRequest(BaseModel):
     id: str
 
+import random
+
 # API Routes
 @app.get("/api/status")
 def get_status():
-    """Returns current cluster telemetry, nodes, incident state, and workloads."""
+    """Returns current cluster telemetry, nodes, incident state, and workloads with organic real-time metric jitter."""
+    for node in state["nodes"]:
+        if node.get("source") == "built-in" and node["status"] != "critical":
+            node["cpu"] = max(10, min(98, node["cpu"] + random.randint(-2, 2)))
+            node["ram"] = max(15, min(95, node["ram"] + random.randint(-1, 1)))
+            if node.get("gpu", 0) > 0:
+                node["gpu"] = max(5, min(99, node["gpu"] + random.randint(-3, 3)))
+            node["temp"] = max(35, min(85, node["temp"] + random.randint(-1, 1)))
+
+            pred = anomaly_engine.predict_risk(
+                cpu=node["cpu"],
+                ram=node["ram"],
+                disk_io=node.get("disk_io", 100.0),
+                net_jitter=node.get("net_jitter", 2.0),
+                gpu_temp=node["temp"],
+                gpu_util=node.get("gpu", 0.0)
+            )
+            node["risk"] = pred["risk"]
+
     return {
         "ok": True,
         "engine": "FastAPI + scikit-learn IsolationForest",
