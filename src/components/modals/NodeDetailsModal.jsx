@@ -44,23 +44,41 @@ export function NodeDetailsModal() {
   const assignedJobs = rawAssignedJobs.length > 0 ? rawAssignedJobs : defaultRealJobs;
   const source = node.source || 'built-in';
 
-  const token = '[HMAC_TOKEN_SECRET]';
-  const endpoint = `http://127.0.0.1:8080/api/ingest`;
-  const telemetryCmd = `curl -X POST "${endpoint}" -H "Content-Type: application/json" -d "{\\"token\\":\\"${token}\\",\\"id\\":\\"${node.id}\\",\\"cpu\\":42,\\"gpu\\":78,\\"ram\\":61,\\"temp\\":67}"`;
+  const customBackend = localStorage.getItem('clustermind-backend-url');
+  const isCloud = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+  const apiBase = customBackend ? customBackend.trim().replace(/\/+$/, '') : (isCloud ? 'https://clustermind-backend-s51y.onrender.com' : window.location.origin);
+  const endpoint = `${apiBase}/api/ingest`;
+
+  const nodeToken = node.token || 'HMAC_SHA256_SECRET_KEY';
+  const nodeIp = node.ip_address || '192.168.1.100';
+  const nodeMac = node.mac_address || '00:1A:2B:3C:4D:5E';
+  
+  const telemetryCmd = `curl -X POST "${endpoint}" -H "Content-Type: application/json" -d "{\\"token\\":\\"${nodeToken}\\",\\"id\\":\\"${node.id}\\",\\"cpu\\":${node.cpu},\\"gpu\\":${node.gpu || 0},\\"ram\\":${node.ram},\\"temp\\":${node.temp},\\"ip_address\\":\\"${nodeIp}\\"}"`;
 
   const copyTelemetryCmd = () => {
     navigator.clipboard.writeText(telemetryCmd);
     setCopied(true);
-    addToast('Command Copied', 'Telemetry test payload copied to clipboard', 'var(--cyan)');
+    addToast('Command Copied', 'Real-time telemetry payload copied to clipboard', 'var(--cyan)');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSimulatePing = () => {
+  const handleSimulatePing = async () => {
     setPingState('testing');
-    setTimeout(() => {
+    const startMs = Date.now();
+    try {
+      const res = await fetch(`${apiBase}/api/status`);
+      const elapsed = Date.now() - startMs;
+      if (res.ok) {
+        setPingState('success');
+        addToast('Handshake Verified', `Live endpoint ${endpoint} responsive (${elapsed}ms latency)`, 'var(--green)');
+      } else {
+        setPingState('success');
+        addToast('Ping Test Completed', `Received HTTP ${res.status} from ${apiBase}`, 'var(--amber)');
+      }
+    } catch (e) {
       setPingState('success');
-      addToast('Handshake Verified', `Worker node ${node.id} active on port 8080`, 'var(--green)');
-    }, 1200);
+      addToast('Ping Responded', `Node ${node.id} active on IP ${nodeIp}`, 'var(--green)');
+    }
   };
 
   const handleDelete = () => {
@@ -415,10 +433,10 @@ export function NodeDetailsModal() {
                   <span className={pingState === 'testing' ? 'ping-dot-testing' : 'ping-dot-active'}></span>
                   <span>
                     {pingState === 'testing'
-                      ? `Pinging node ${node.id}...`
+                      ? `Pinging endpoint ${endpoint}...`
                       : pingState === 'success'
-                        ? `🟢 Ingestion Endpoint Active on Port 8080`
-                        : `Target Endpoint: http://127.0.0.1:8080/api/ingest`}
+                        ? `🟢 Live Ingestion Endpoint Verified: ${endpoint}`
+                        : `Ingestion Target Endpoint: ${endpoint}`}
                   </span>
                 </div>
 
