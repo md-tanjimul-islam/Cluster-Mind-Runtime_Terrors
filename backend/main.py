@@ -80,6 +80,7 @@ class TelemetryPacket(BaseModel):
     gpu_name: Optional[str] = None
     ram_total: Optional[str] = None
     agent_ver: Optional[str] = "3.2.0-win"
+    process_jobs: Optional[List[Dict[str, Any]]] = None
 
 class PredictRequest(BaseModel):
     cpu: float
@@ -205,33 +206,41 @@ def ingest_telemetry(pkt: TelemetryPacket):
             "agent_ver": pkt.agent_ver or "3.2.0-win"
         })
 
-    # Ensure workloads exist for this node
-    has_workloads = any(w["node"] == pkt.id for w in state["workloads"])
-    if not has_workloads:
-        state["workloads"].extend([
-            {
-                "id": f"telemetry-stream-{pkt.id}",
-                "name": "Live Telemetry & Ingestion Pipeline",
-                "node": pkt.id,
-                "category": "Telemetry",
-                "status": "Running",
-                "progress": "Streaming @ 5s interval",
-                "vram": "0.3 GB",
-                "cpu": "2%",
-                "runtime": "Continuous"
-            },
-            {
-                "id": f"isolation-model-{pkt.id}",
-                "name": "IsolationForest AI Health Inspector",
-                "node": pkt.id,
-                "category": "AI Security",
-                "status": "Running",
-                "progress": "Real-time Kernel Evaluation",
-                "vram": "0.6 GB",
-                "cpu": "4%",
-                "runtime": "Continuous"
-            }
-        ])
+    # Sync process workloads for this node
+    if pkt.process_jobs and len(pkt.process_jobs) > 0:
+        state["workloads"] = [w for w in state["workloads"] if w["node"] != pkt.id]
+        state["workloads"].extend(pkt.process_jobs)
+        for node in state["nodes"]:
+            if node["id"] == pkt.id:
+                node["jobs"] = len(pkt.process_jobs)
+                break
+    else:
+        has_workloads = any(w["node"] == pkt.id for w in state["workloads"])
+        if not has_workloads:
+            state["workloads"].extend([
+                {
+                    "id": f"telemetry-stream-{pkt.id}",
+                    "name": "Live Telemetry & Ingestion Pipeline",
+                    "node": pkt.id,
+                    "category": "Telemetry",
+                    "status": "Running",
+                    "progress": "Streaming @ 5s interval",
+                    "vram": "0.3 GB",
+                    "cpu": "2%",
+                    "runtime": "Continuous"
+                },
+                {
+                    "id": f"isolation-model-{pkt.id}",
+                    "name": "IsolationForest AI Health Inspector",
+                    "node": pkt.id,
+                    "category": "AI Security",
+                    "status": "Running",
+                    "progress": "Real-time Kernel Evaluation",
+                    "vram": "0.6 GB",
+                    "cpu": "4%",
+                    "runtime": "Continuous"
+                }
+            ])
 
     return {
         "ok": True,

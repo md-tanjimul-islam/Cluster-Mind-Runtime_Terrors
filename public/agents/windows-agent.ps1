@@ -120,27 +120,48 @@ function Get-ClusterMindTelemetry {
         }
     }
 
-    $activeUserProcesses = @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.SessionId -gt 0 -and $_.WorkingSet64 -gt 40MB -and $_.ProcessName -notmatch '^(explorer|SearchHost|TextInputHost|cmd|powershell|conhost|ApplicationFrameHost|SystemSettings)$' }).Count
-    $activeJobs = [math]::Max(1, [math]::Min(9, $activeUserProcesses))
+    $rawProcesses = @(Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.SessionId -gt 0 -and $_.WorkingSet64 -gt 35MB -and $_.ProcessName -notmatch '^(explorer|SearchHost|TextInputHost|cmd|powershell|conhost|ApplicationFrameHost|SystemSettings|wmiprvse|svchost)$' } |
+        Sort-Object WorkingSet64 -Descending |
+        Select-Object -First 9)
+
+    $processJobs = @()
+    foreach ($p in $rawProcesses) {
+        $ramMb = [math]::Round($p.WorkingSet64 / 1MB)
+        $processJobs += @{
+            id       = "$($p.ProcessName)-$($p.Id)"
+            name     = "$($p.ProcessName).exe (PID $($p.Id))"
+            node     = $NodeId
+            category = "System Workload"
+            status   = "Running"
+            progress = "Memory: ${ramMb} MB"
+            vram     = "${ramMb} MB RAM"
+            cpu      = "$([math]::Round($p.CPU, 1))s CPU"
+            runtime  = "Active Task"
+        }
+    }
+
+    $activeJobs = [math]::Max(1, $processJobs.Count)
 
     $specSummary = if ($gpuName) { "$gpuName · ${totalRamGb}GB" } else { "$cpuName · ${totalRamGb}GB" }
     $osVersion = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption
     if (-not $osVersion) { $osVersion = "Windows " + [System.Environment]::OSVersion.Version.ToString() }
 
     return @{
-        token     = $Token
-        id        = $NodeId
-        type      = $specSummary
-        cpu       = [int]$cpu
-        gpu       = [int]$gpu
-        ram       = [int]$ram
-        temp      = [int]$temperature
-        jobs      = [int]$activeJobs
-        os        = [string]$osVersion.Trim()
-        cpu_name  = [string]$cpuName.Trim()
-        gpu_name  = [string]$gpuName.Trim()
-        ram_total = "${totalRamGb} GB"
-        agent_ver = "3.2.0-win"
+        token        = $Token
+        id           = $NodeId
+        type         = $specSummary
+        cpu          = [int]$cpu
+        gpu          = [int]$gpu
+        ram          = [int]$ram
+        temp         = [int]$temperature
+        jobs         = [int]$activeJobs
+        os           = [string]$osVersion.Trim()
+        cpu_name     = [string]$cpuName.Trim()
+        gpu_name     = [string]$gpuName.Trim()
+        ram_total    = "${totalRamGb} GB"
+        agent_ver    = "3.2.0-win"
+        process_jobs = $processJobs
     }
 }
 
