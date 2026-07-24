@@ -79,7 +79,8 @@ state = {
     ],
     "workloads": INITIAL_WORKLOAD_JOBS,
     "tokens": {},
-    "risk_threshold": 65
+    "risk_threshold": 65,
+    "revoked_nodes": set()
 }
 
 # Pydantic Schemas
@@ -237,9 +238,14 @@ def ingest_telemetry(data: Optional[dict] = None):
     if not data:
         data = {}
     try:
-        node_id = str(data.get("id") or "gpu-worker-04")
+        node_id = str(data.get("id") or "gpu-worker-04").strip()
         token = data.get("token")
         
+        # Check if node has been explicitly deleted/revoked by cluster operator
+        revoked_nodes = state.get("revoked_nodes", set())
+        if node_id.lower() in {r.lower() for r in revoked_nodes}:
+            return {"ok": False, "detail": f"Node {node_id} has been revoked by cluster operator"}
+
         # Check token if node is registered
         if token and node_id in state["tokens"] and state["tokens"][node_id] != token:
             raise HTTPException(status_code=403, detail="Invalid node authentication token")
@@ -448,8 +454,10 @@ class AddNodeRequest(BaseModel):
 
 @app.post("/api/register")
 def register_node(req: RegisterRequest):
-    token = hashlib.sha256(f"{req.id}-{time.time()}".encode()).hexdigest()[:32]
+    token = secrets.token_hex(16)
     state["tokens"][req.id] = token
+    if "revoked_nodes" in state:
+        state["revoked_nodes"].discard(req.id.lower())
     return {"ok": True, "id": req.id, "token": token}
 
 @app.post("/api/node")
@@ -525,10 +533,15 @@ def complete_healing(req: Optional[HealRequest] = None):
 
 @app.post("/api/delete")
 def delete_node(req: DeleteRequest):
-    """Deletes registered worker node and revokes token."""
-    state["nodes"] = [n for n in state["nodes"] if n["id"] != req.id]
-    state["tokens"].pop(req.id, None)
-    return {"ok": True, "deleted": req.id}
+    """Deletes registered worker node, revokes token, and permanently blocks telemetry ingestion."""
+    node_id = req.id.strip()
+    state["nodes"] = [n for n in state["nodes"] if n.get("id", "").lower() != node_id.lower()]
+    state["workloads"] = [w for w in state["workloads"] if w.get("node", "").lower() != node_id.lower()]
+    state["tokens"].pop(node_id, None)
+    if "revoked_nodes" not in state:
+        state["revoked_nodes"] = set()
+    state["revoked_nodes"].add(node_id.lower())
+    return {"ok": True, "deleted": node_id}
 
 @app.post("/api/activity/clear")
 def clear_activity_log():
@@ -552,6 +565,9 @@ def reset_system():
     state["workloads"] = copy.deepcopy(INITIAL_WORKLOAD_JOBS)
     state["tokens"] = {}
     state["risk_threshold"] = 65
+    state["revoked_nodes"] = set()
+    return {"ok": True, "message": "Backend system reset to initial baseline state"}
+
 @app.post("/api/nodes/clear-all")
 def clear_all_nodes():
     """Wipes all cluster nodes & workloads so operators can run pure real-device hardware tests."""
@@ -559,6 +575,7 @@ def clear_all_nodes():
     state["workloads"] = []
     state["incident"] = None
     state["tokens"] = {}
+    state["revoked_nodes"] = set()
     state["activity"].insert(0, {
         "type": "alert",
         "title": "Pure Real-Device Mode Activated",
