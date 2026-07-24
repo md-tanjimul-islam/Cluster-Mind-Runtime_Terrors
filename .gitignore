@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output & temporary files
+dist/
+tmp/
+.DS_Store
+*.log
+
+# Excluded folders as per deployment spec
+docs/
