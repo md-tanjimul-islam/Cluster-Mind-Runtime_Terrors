@@ -17,13 +17,14 @@ import { ExplainModal } from './components/modals/ExplainModal';
 import { DemoModal } from './components/modals/DemoModal';
 import { NodeDetailsModal } from './components/modals/NodeDetailsModal';
 import { SettingsModal } from './components/modals/SettingsModal';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 export function App() {
   const { toasts } = useCluster();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <>
+    <ErrorBoundary>
       <a href="#main" className="skip-link">Skip to main content</a>
 
       {/* Ambient background glows */}
@@ -43,12 +44,12 @@ export function App() {
         <MetricsGrid />
 
         <section className="dashboard-grid" aria-label="Dashboard panels">
-          <HealingProcessPanel />
-          <NodeGrid />
-          <RiskPanel />
-          <JobsPanel />
-          <ActivityLog />
-          <ImpactChart />
+          <ErrorBoundary><HealingProcessPanel /></ErrorBoundary>
+          <ErrorBoundary><NodeGrid /></ErrorBoundary>
+          <ErrorBoundary><RiskPanel /></ErrorBoundary>
+          <ErrorBoundary><JobsPanel /></ErrorBoundary>
+          <ErrorBoundary><ActivityLog /></ErrorBoundary>
+          <ErrorBoundary><ImpactChart /></ErrorBoundary>
         </section>
       </main>
 
@@ -69,7 +70,7 @@ export function App() {
           </div>
         ))}
       </div>
-    </>
+    </ErrorBoundary>
   );
 }
 export default App;

@@ -108,24 +108,35 @@ export function ClusterProvider({ children }) {
         const res = await fetch(`${API_BASE}/api/status`);
         if (res.ok) {
           const data = await res.json();
-          if (data.nodes) {
+          if (data && data.nodes && Array.isArray(data.nodes)) {
+            const validServerNodes = data.nodes.filter(n => n && typeof n.id === 'string' && n.id.trim() !== '');
             setNodes(prevNodes => {
-              const serverNodeIds = new Set(data.nodes.map(n => n.id.toLowerCase()));
-              const localCustomNodes = prevNodes.filter(n => !serverNodeIds.has(n.id.toLowerCase()));
-              const merged = [...data.nodes, ...localCustomNodes];
+              const serverNodeIds = new Set(validServerNodes.map(n => n.id.toLowerCase()));
+              const localCustomNodes = (prevNodes || []).filter(n => n && typeof n.id === 'string' && !serverNodeIds.has(n.id.toLowerCase()));
+              const merged = [...validServerNodes, ...localCustomNodes];
               
-              // Persist local custom nodes in localStorage
-              const customToSave = merged.filter(n => n.source === 'real' || n.source === 'demo');
+              // Persist local custom nodes in localStorage safely
               try {
+                const customToSave = merged.filter(n => n && (n.source === 'real' || n.source === 'demo'));
                 localStorage.setItem('clustermind-custom-nodes', JSON.stringify(customToSave));
               } catch {}
               return merged;
             });
           }
-          if (data.incident !== undefined) setIncident(data.incident);
-          if (data.impact) setImpact(data.impact);
-          if (data.activity) setActivity(data.activity);
-          if (data.workloads) setWorkloadJobs(data.workloads);
+          if (data && data.incident !== undefined) setIncident(data.incident);
+          if (data && data.impact && typeof data.impact === 'object') {
+            setImpact(prev => ({
+              prevented: typeof data.impact.prevented === 'number' ? data.impact.prevented : (prev?.prevented ?? 47),
+              savings: typeof data.impact.savings === 'number' ? data.impact.savings : (prev?.savings ?? 38980),
+              recovery: typeof data.impact.recovery === 'number' ? data.impact.recovery : (prev?.recovery ?? 24)
+            }));
+          }
+          if (data && data.activity && Array.isArray(data.activity)) {
+            setActivity(data.activity.filter(a => a && typeof a.title === 'string'));
+          }
+          if (data && data.workloads && Array.isArray(data.workloads)) {
+            setWorkloadJobs(data.workloads.filter(w => w && typeof w.id === 'string'));
+          }
         }
       } catch (err) {
         // Fallback organic metric animation for local nodes (skip offline real nodes)

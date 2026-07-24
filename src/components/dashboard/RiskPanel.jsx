@@ -15,13 +15,15 @@ export function RiskPanel() {
 
   if (!riskNode) return null;
 
-  const confidence = Math.min(98, Math.round(72 + riskNode.risk * 0.3));
-  const sc = riskNode.risk >= riskThreshold ? 'var(--red)' : riskNode.risk >= 30 ? 'var(--amber)' : 'var(--green)';
-  const labelText  = riskNode.risk >= riskThreshold ? 'Elevated Risk' : riskNode.risk >= 30 ? 'Under Watch' : 'Nominal';
-  const labelClass = riskNode.risk >= riskThreshold ? 'tag-critical'  : riskNode.risk >= 30 ? 'tag-watch'   : 'tag-healthy';
+  const currentRisk = typeof riskNode.risk === 'number' && !isNaN(riskNode.risk) ? riskNode.risk : 0;
+  const thresh = typeof riskThreshold === 'number' && !isNaN(riskThreshold) ? riskThreshold : 65;
+  const confidence = Math.min(98, Math.round(72 + currentRisk * 0.3));
+  const sc = currentRisk >= thresh ? 'var(--red)' : currentRisk >= 30 ? 'var(--amber)' : 'var(--green)';
+  const labelText  = currentRisk >= thresh ? 'Elevated Risk' : currentRisk >= 30 ? 'Under Watch' : 'Nominal';
+  const labelClass = currentRisk >= thresh ? 'tag-critical'  : currentRisk >= 30 ? 'tag-watch'   : 'tag-healthy';
 
   const GAUGE_C = 2 * Math.PI * 55; // ~345.4
-  const offset  = GAUGE_C * (1 - riskNode.risk / 100);
+  const offset  = GAUGE_C * (1 - Math.max(0, Math.min(100, currentRisk)) / 100);
 
   return (
     <article className="panel risk-panel" id="riskPanel">
