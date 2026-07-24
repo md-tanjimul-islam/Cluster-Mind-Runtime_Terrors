@@ -17,11 +17,11 @@ $macAddress = (Get-NetAdapter | Select-Object -First 1).MacAddress
 
 Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host " 🚀 ClusterMind Native Windows Telemetry Agent v3.5.0" -ForegroundColor Green
-Write-Host " Node Hostname : $NodeId" -ForegroundColor Yellow
-Write-Host " Ingest URL    : $Endpoint"
-Write-Host " Hardware Specs: $cpuName ($cpuCores Cores)"
-Write-Host " System Memory : $ramTotal | IP: $ipAddress"
-Write-Host " OS Profile    : $osName"
+Write-Host " Node Hostname : ${NodeId}" -ForegroundColor Yellow
+Write-Host " Ingest URL    : ${Endpoint}"
+Write-Host " Hardware Specs: ${cpuName} (${cpuCores} Cores)"
+Write-Host " System Memory : ${ramTotal} | IP: ${ipAddress}"
+Write-Host " OS Profile    : ${osName}"
 Write-Host "============================================================" -ForegroundColor Cyan
 
 while ($true) {
@@ -51,7 +51,7 @@ while ($true) {
             connection = "online"
             os = $osName
             cpu_name = $cpuName
-            cpu_cores = "$cpuCores Logical Cores"
+            cpu_cores = "${cpuCores} Logical Cores"
             gpu_name = $gpuName
             ram_total = $ramTotal
             ip_address = $ipAddress
@@ -60,10 +60,11 @@ while ($true) {
         } | ConvertTo-Json
 
         $response = Invoke-RestMethod -Uri $Endpoint -Method Post -Body $payload -ContentType "application/json" -TimeoutSec 5
-        Write-Host "[telemetry-win] Node: $NodeId | CPU: $cpu% | RAM: $ram% | Temp: ${temp}°C -> OK" -ForegroundColor Green
+        Write-Host "[telemetry-win] Node: ${NodeId} | CPU: ${cpu}% | RAM: ${ram}% | Temp: ${temp}°C -> OK" -ForegroundColor Green
     }
     catch {
-        Write-Host "[telemetry-error] Failed to send telemetry to $Endpoint: $_" -ForegroundColor Red
+        $err = $_.Exception.Message
+        Write-Host "[telemetry-error] Failed to send telemetry: ${err}" -ForegroundColor Red
     }
 
     Start-Sleep -Seconds $Interval
