@@ -111,8 +111,11 @@ export function ClusterProvider({ children }) {
           if (data.workloads) setWorkloadJobs(data.workloads);
         }
       } catch (err) {
-        // Fallback organic metric animation for local nodes
+        // Fallback organic metric animation for local nodes (skip offline real nodes)
         setNodes(prev => prev.map(n => {
+          if (n.source === 'real' && n.connection === 'offline') {
+            return { ...n, cpu: 0, gpu: 0, ram: 0, temp: 0, jobs: 0 };
+          }
           if (n.status === 'critical') return n;
           const cpuDelta = Math.floor(Math.random() * 5) - 2;
           const ramDelta = Math.floor(Math.random() * 3) - 1;

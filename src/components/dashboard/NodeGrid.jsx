@@ -18,8 +18,9 @@ export function NodeGrid() {
   const filteredNodes = nodes.filter(node => {
     const q = searchQuery.trim().toLowerCase();
     if (q && !node.id.toLowerCase().includes(q) && !(node.type || '').toLowerCase().includes(q)) return false;
-    if (statusFilter === 'all')  return true;
-    if (statusFilter === 'real') return node.source === 'real';
+    if (statusFilter === 'all')     return true;
+    if (statusFilter === 'real')    return node.source === 'real';
+    if (statusFilter === 'offline') return node.connection === 'offline' || node.status === 'offline';
     return node.status === statusFilter;
   });
 
@@ -49,7 +50,7 @@ export function NodeGrid() {
           </div>
 
           <div className="filter-pills" role="group" aria-label="Node status filters">
-            {['all', 'healthy', 'watch', 'critical', 'real'].map(f => (
+            {['all', 'healthy', 'watch', 'critical', 'real', 'offline'].map(f => (
               <button
                 key={f}
                 className={`pill ${statusFilter === f ? 'active' : ''}`}

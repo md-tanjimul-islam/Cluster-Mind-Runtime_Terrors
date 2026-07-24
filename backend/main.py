@@ -81,6 +81,7 @@ class TelemetryPacket(BaseModel):
     ram_total: Optional[str] = None
     agent_ver: Optional[str] = "3.2.0-win"
     process_jobs: Optional[List[Dict[str, Any]]] = None
+    connection: Optional[str] = None
 
 class PredictRequest(BaseModel):
     cpu: float
@@ -105,9 +106,33 @@ import random
 # API Routes
 @app.get("/api/status")
 def get_status():
-    """Returns current cluster telemetry, nodes, incident state, and workloads with organic real-time metric jitter."""
+    """Returns current cluster telemetry, nodes, incident state, and workloads with heartbeat timeout monitoring."""
+    now = int(time.time())
     for node in state["nodes"]:
-        if node.get("source") == "built-in" and node["status"] != "critical":
+        # 1. Heartbeat Timeout & Offline Detection for Real Hardware Nodes
+        if node.get("source") == "real":
+            last_seen = node.get("last_seen", 0)
+            if last_seen > 0 and (now - last_seen) > 12:
+                node["connection"] = "offline"
+                node["cpu"] = 0
+                node["gpu"] = 0
+                node["ram"] = 0
+                node["temp"] = 0
+                node["jobs"] = 0
+                node["status"] = "watch"
+
+                # Mark active workloads for this node as offline/stopped
+                for w in state["workloads"]:
+                    if w.get("node") == node["id"]:
+                        w["status"] = "Offline / Stopped"
+                        w["progress"] = "Heartbeat Timed Out"
+
+                if (now - last_seen) > 30:
+                    node["status"] = "critical"
+                    node["risk"] = 94
+
+        # 2. Organic Metric Jitter for Built-in Demo Nodes
+        elif node.get("source") == "built-in" and node["status"] != "critical":
             node["cpu"] = max(10, min(98, node["cpu"] + random.randint(-2, 2)))
             node["ram"] = max(15, min(95, node["ram"] + random.randint(-1, 1)))
             if node.get("gpu", 0) > 0:
@@ -153,6 +178,24 @@ def ingest_telemetry(pkt: TelemetryPacket):
     # Check token if node is real
     if pkt.token and pkt.id in state["tokens"] and state["tokens"][pkt.id] != pkt.token:
         raise HTTPException(status_code=403, detail="Invalid node authentication token")
+
+    # Handle explicit offline signal from agent shutdown
+    if pkt.connection == "offline":
+        for node in state["nodes"]:
+            if node["id"] == pkt.id:
+                node["connection"] = "offline"
+                node["status"] = "watch"
+                node["cpu"] = 0
+                node["gpu"] = 0
+                node["ram"] = 0
+                node["temp"] = 0
+                node["jobs"] = 0
+                break
+        for w in state["workloads"]:
+            if w.get("node") == pkt.id:
+                w["status"] = "Offline / Stopped"
+                w["progress"] = "Node Shutdown"
+        return {"ok": True, "status": "offline"}
 
     # Evaluate IsolationForest Model
     pred = anomaly_engine.predict_risk(

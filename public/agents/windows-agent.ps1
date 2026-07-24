@@ -182,6 +182,21 @@ try {
         Start-Sleep -Seconds $IntervalSeconds
     }
 } finally {
+    Write-Host "`nShutting down agent. Sending offline signal..." -ForegroundColor Yellow
+    try {
+        $offlinePayload = @{
+            token      = $Token
+            id         = $NodeId
+            connection = "offline"
+            cpu        = 0
+            gpu        = 0
+            ram        = 0
+            temp       = 0
+            jobs       = 0
+        }
+        Invoke-RestMethod -Uri $Endpoint -Method Post -ContentType "application/json" -Body ($offlinePayload | ConvertTo-Json -Compress) -TimeoutSec 3 -ErrorAction SilentlyContinue
+    } catch {}
+
     Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
     $mutex.ReleaseMutex()
     $mutex.Dispose()
