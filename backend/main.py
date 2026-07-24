@@ -13,6 +13,9 @@ app = FastAPI(
     version="2.0.0"
 )
 
+import os
+from fastapi.staticfiles import StaticFiles
+
 # Enable CORS for Vite dev server & local frontend
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +24,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount agents directory for serving PowerShell/Bash installer scripts statically
+agents_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "agents")
+if os.path.exists(agents_dir):
+    app.mount("/agents", StaticFiles(directory=agents_dir), name="agents")
 
 # In-Memory State Registry
 INITIAL_NODES = [
