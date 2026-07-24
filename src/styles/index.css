@@ -2649,3 +2649,500 @@ nav {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN — Full Mobile-First Breakpoints
+   Breakpoints: 1200px | 1024px (tablet) | 768px (mobile) | 480px (small)
+   ========================================================================== */
+
+/* ---- Utility visibility helpers ---- */
+.topbar-desktop-only { display: flex; }
+.topbar-mobile-only  { display: none; }
+.topbar-center-hide-mobile { display: flex; }
+
+/* Mobile Sidebar Overlay Backdrop */
+.sidebar-mobile-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 89;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Mobile Close Button (hidden on desktop) */
+.sidebar-mobile-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all var(--transition-fast);
+}
+.sidebar-mobile-close:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+}
+
+/* ==========================================================================
+   1200px — Slight compression for smaller laptops
+   ========================================================================== */
+@media (max-width: 1200px) {
+  #main {
+    padding: 24px;
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .gauge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .insp-kv-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   1024px — Tablet: collapse dashboard to single column
+   ========================================================================== */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-w: 210px;
+  }
+
+  #main {
+    padding: 20px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8125rem;
+    padding: 9px 14px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jobs-panel {
+    grid-column: span 1;
+  }
+
+  .job-meta {
+    gap: 14px;
+  }
+
+  .demo-preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   768px — Mobile: sidebar becomes off-canvas drawer
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* ---- Topbar ---- */
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .topbar-desktop-only {
+    display: none;
+  }
+
+  .topbar-mobile-only {
+    display: flex;
+  }
+
+  .topbar-center-hide-mobile {
+    display: none;
+  }
+
+  .brand span {
+    font-size: 1.1rem;
+  }
+
+  /* ---- Sidebar becomes off-canvas drawer ---- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    z-index: 200;
+    padding-top: 60px; /* space for close button */
+    box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-mobile-backdrop {
+    display: block;
+  }
+
+  .sidebar-mobile-close {
+    display: flex;
+  }
+
+  /* Always show nav labels in mobile drawer */
+  body.sidebar-mini .nav-label,
+  body.sidebar-mini .health-widget,
+  body.sidebar-mini .demo-btn span {
+    display: block;
+  }
+
+  body.sidebar-mini .nav-item {
+    justify-content: flex-start;
+    padding: 10px 14px;
+  }
+
+  /* ---- Main content takes full width ---- */
+  #main {
+    margin-left: 0 !important;
+    margin-top: var(--topbar-h);
+    padding: 16px;
+  }
+
+  body.sidebar-mini #main {
+    margin-left: 0 !important;
+  }
+
+  /* ---- Hero ---- */
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .hero-sub {
+    font-size: 0.875rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ---- Metrics grid: 2 columns ---- */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .metric-val {
+    font-size: 1.25rem;
+  }
+
+  /* ---- Dashboard panels: single column, less padding ---- */
+  .panel {
+    padding: 18px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* ---- Node grid: 1 column on mobile ---- */
+  .node-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .node-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .node-search-wrap {
+    width: 100%;
+  }
+
+  .node-search {
+    width: 100%;
+  }
+
+  /* ---- Jobs panel ---- */
+  .job-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .job-meta {
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* ---- Risk panel gauge ---- */
+  .risk-layout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gauge-wrap {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* ---- Inspector modal telemetry gauges ---- */
+  .gauge-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .insp-kv-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* ---- Inspector tab bar: 2x2 grid ---- */
+  .insp-tab-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* ---- Injector buttons ---- */
+  .injector-btns {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ---- Modals ---- */
+  .modal-backdrop {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 92vh;
+    padding: 20px;
+    animation: slideUp 0.3s var(--ease-out);
+  }
+
+  .modal-lg,
+  .modal-connect,
+  .modal-wizard-v3,
+  .modal-inspector-v3 {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 92vh;
+    width: 100%;
+  }
+
+  .wiz-header-v3,
+  .insp-header {
+    padding: 20px 20px 14px;
+  }
+
+  .wiz-body-v3,
+  .insp-body {
+    padding: 16px 20px;
+  }
+
+  .wiz-stepper-bar {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .wiz-step-btn {
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 6px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .wiz-step-info {
+    display: none;
+  }
+
+  .conn-mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conn-workspace-nextgen,
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wiz-footer,
+  .insp-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wiz-footer > *,
+  .insp-footer > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Toast region */
+  .toast-region {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .toast {
+    width: 100%;
+  }
+
+  /* ---- Topology / Explain modals ---- */
+  .modal-foot-nextgen {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* ==========================================================================
+   480px — Small phones
+   ========================================================================== */
+@media (max-width: 480px) {
+  :root {
+    --topbar-h: 60px;
+  }
+
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .brand span {
+    font-size: 1rem;
+  }
+
+  #main {
+    padding: 12px;
+  }
+
+  /* ---- Metrics: stack to 1 column on very small screens ---- */
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 1.25rem;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: var(--radius-md);
+  }
+
+  /* ---- Inspector: 1 column gauges ---- */
+  .gauge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .insp-kv-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insp-tab-bar {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .insp-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .insp-status-badge {
+    align-self: flex-start;
+  }
+
+  /* Wizard title row stack */
+  .wiz-title-row {
+    gap: 10px;
+  }
+
+  .wiz-icon-avatar,
+  .insp-icon-avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .wiz-title-text h2,
+  .insp-title-text h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Demo preset: single column */
+  .demo-preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Risk score card: stack vertically */
+  .risk-score-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Jobs card */
+  .job-meta {
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+  }
+
+  /* Activity log */
+  .act-row {
+    flex-wrap: wrap;
+  }
+
+  .act-time {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+  }
+}
+
+/* Slide up animation for bottom-sheet modals */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

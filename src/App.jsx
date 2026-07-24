@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCluster } from './context/ClusterContext';
 import { Topbar } from './components/layout/Topbar';
 import { Sidebar } from './components/layout/Sidebar';
@@ -15,9 +15,11 @@ import { TopologyModal } from './components/modals/TopologyModal';
 import { ExplainModal } from './components/modals/ExplainModal';
 import { DemoModal } from './components/modals/DemoModal';
 import { NodeDetailsModal } from './components/modals/NodeDetailsModal';
+import { SettingsModal } from './components/modals/SettingsModal';
 
 export function App() {
   const { toasts } = useCluster();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
@@ -29,8 +31,11 @@ export function App() {
         <div className="ambient-blob ambient-2"></div>
       </div>
 
-      <Topbar />
-      <Sidebar />
+      <Topbar onMobileMenuToggle={() => setMobileMenuOpen(o => !o)} />
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
 
       <main id="main">
         <Hero />
@@ -51,6 +56,7 @@ export function App() {
       <ExplainModal />
       <DemoModal />
       <NodeDetailsModal />
+      <SettingsModal />
 
       {/* Toast Region */}
       <div className="toast-region" role="status" aria-live="polite">

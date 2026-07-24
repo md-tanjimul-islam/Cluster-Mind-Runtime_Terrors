@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useCluster } from '../../context/ClusterContext';
-import { Sun, Moon, Volume2, VolumeX, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Sun, Moon, Volume2, VolumeX, PanelLeftClose, PanelLeftOpen, Menu, Settings } from 'lucide-react';
 
-export function Topbar() {
-  const { theme, toggleTheme, sound, toggleSound, sidebarMini, toggleSidebar } = useCluster();
+export function Topbar({ onMobileMenuToggle }) {
+  const { theme, toggleTheme, sound, toggleSound, sidebarMini, toggleSidebar, setActiveModal } = useCluster();
   const [timeStr, setTimeStr] = useState('');
 
   useEffect(() => {
@@ -16,13 +16,23 @@ export function Topbar() {
   return (
     <header className="topbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Desktop: sidebar toggle */}
         <button
-          className="icon-btn"
+          className="icon-btn topbar-desktop-only"
           onClick={toggleSidebar}
           title={sidebarMini ? "Expand sidebar" : "Collapse sidebar"}
           aria-label="Toggle sidebar width"
         >
           {sidebarMini ? <PanelLeftOpen /> : <PanelLeftClose />}
+        </button>
+
+        {/* Mobile: hamburger menu */}
+        <button
+          className="icon-btn topbar-mobile-only"
+          onClick={onMobileMenuToggle}
+          aria-label="Open navigation menu"
+        >
+          <Menu />
         </button>
 
         <a href="#" className="brand" aria-label="ClusterMind Operations Center">
@@ -33,7 +43,7 @@ export function Topbar() {
         </a>
       </div>
 
-      <div className="topbar-center">
+      <div className="topbar-center topbar-center-hide-mobile">
         <span className="live-dot" aria-hidden="true"></span>
         <span>AI Telemetry Active</span>
         <span className="divider" aria-hidden="true"></span>
@@ -57,6 +67,15 @@ export function Topbar() {
           aria-label="Toggle theme mode"
         >
           {theme === 'dark' ? <Sun /> : <Moon />}
+        </button>
+
+        <button
+          className="icon-btn"
+          onClick={() => setActiveModal('settings')}
+          title="Open Customization & Stability Settings"
+          aria-label="Open settings"
+        >
+          <Settings />
         </button>
 
         <div className="avatar" title="Runtime Terrors Operator" aria-label="User avatar">

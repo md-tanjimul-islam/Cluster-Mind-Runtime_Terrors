@@ -2,9 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ClusterContext = createContext();
 
-// Dynamic API Base URL resolution for deployment on Render
+// Dynamic API Base URL resolution with localStorage override support
 const getApiBase = () => {
   if (typeof window === 'undefined') return '';
+  const custom = localStorage.getItem('clustermind-backend-url');
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/+$/, '');
+  }
   const host = window.location.hostname;
   if (host.includes('onrender.com') || (!host.includes('localhost') && !host.includes('127.0.0.1'))) {
     return 'https://clustermind-backend-s51y.onrender.com';
@@ -131,7 +135,8 @@ export function ClusterProvider({ children }) {
     };
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 2000);
+    const pollSpeed = parseInt(localStorage.getItem('clustermind-poll-interval')) || 2000;
+    const interval = setInterval(fetchStatus, pollSpeed);
     return () => clearInterval(interval);
   }, []);
 
