@@ -186,7 +186,6 @@ def get_status():
     }
 
 @app.get("/api/agent/python")
-@app.get("/agents/agent.py")
 def download_agent():
     """Serves universal Python telemetry agent script for real hardware devices."""
     agent_path = os.path.join(os.path.dirname(__file__), "agent.py")
@@ -195,7 +194,6 @@ def download_agent():
     raise HTTPException(status_code=404, detail="Agent script file not found")
 
 @app.get("/api/agent/ps1")
-@app.get("/agents/agent.ps1")
 def download_ps1_agent():
     """Serves zero-dependency Windows PowerShell telemetry agent script."""
     agent_path = os.path.join(os.path.dirname(__file__), "agent.ps1")
