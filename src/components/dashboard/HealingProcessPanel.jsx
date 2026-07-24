@@ -41,9 +41,13 @@ export function HealingProcessPanel() {
   const safeIndex = activeIndex >= atRiskNodes.length ? 0 : activeIndex;
   const currentNode = atRiskNodes[safeIndex] || atRiskNodes[0];
 
+  if (!currentNode) {
+    return null;
+  }
+
   // Dynamically allocate healthy target node for active workload migration
   const targetHealthyNode = nodes.find(n => 
-    n.id !== currentNode.id && 
+    n.id !== currentNode?.id && 
     n.connection !== 'offline' && 
     n.risk < 45
   )?.id || 'gpu-worker-01';

@@ -43,18 +43,20 @@ export function SettingsModal() {
   const handleSaveSettings = (e) => {
     e.preventDefault();
     const cleanBackend = backendUrl.trim().replace(/\/+$/, '');
-    const oldBackend = localStorage.getItem('clustermind-backend-url');
+    const parsedThreshold = parseInt(localRiskThreshold, 10) || 65;
     
-    const parsedThreshold = parseInt(localRiskThreshold);
     localStorage.setItem('clustermind-backend-url', cleanBackend);
-    localStorage.setItem('clustermind-poll-interval', pollInterval);
+    localStorage.setItem('clustermind-poll-interval', pollInterval || '2000');
     localStorage.setItem('clustermind-risk-threshold', parsedThreshold.toString());
     localStorage.setItem('clustermind-autoheal-mode', autoHealMode);
     localStorage.setItem('clustermind-theme', themePreset);
 
-    // Immediately update context state
-    setContextRiskThreshold(parsedThreshold);
-    setTheme(themePreset);
+    if (typeof setContextRiskThreshold === 'function') {
+      setContextRiskThreshold(parsedThreshold);
+    }
+    if (typeof setTheme === 'function') {
+      setTheme(themePreset);
+    }
 
     setSavedSuccess(true);
     addToast('Settings Saved', `IsolationForest anomaly sensitivity set to ${parsedThreshold}% trigger threshold`, 'var(--cyan)');
@@ -62,10 +64,8 @@ export function SettingsModal() {
     setTimeout(() => {
       setSavedSuccess(false);
       setActiveModal('none');
-      if (oldBackend && oldBackend !== cleanBackend) {
-        window.location.reload();
-      }
-    }, 800);
+      window.location.reload();
+    }, 500);
   };
 
   const handleResetDefaults = () => {
