@@ -309,12 +309,19 @@ export function ClusterProvider({ children }) {
     addToast('Node Revoked', `${nodeId} removed and token revoked`, 'var(--red)');
   };
 
+  const clearActivityLog = async () => {
+    setActivity([]);
+    try {
+      await fetch(`${API_BASE}/api/activity/clear`, { method: 'POST' });
+    } catch {}
+  };
+
   return (
     <ClusterContext.Provider value={{
       nodes, setNodes,
       incident, setIncident,
       impact, setImpact,
-      activity, setActivity,
+      activity, setActivity, clearActivityLog,
       workloadJobs, setWorkloadJobs,
       toasts, addToast,
       theme, setTheme, toggleTheme: () => setTheme(prev => prev === 'dark' ? 'light' : 'dark'),

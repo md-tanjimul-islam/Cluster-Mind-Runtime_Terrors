@@ -223,6 +223,13 @@ def ingest_telemetry(pkt: TelemetryPacket):
         risk_threshold=thresh
     )
 
+    # Check 60-second stabilization grace period after healing
+    healed_time = next((n.get("healed_at", 0) for n in state["nodes"] if n["id"] == pkt.id), 0)
+    in_grace_period = (time.time() - healed_time) < 60
+
+    effective_risk = min(18, pred["risk"]) if in_grace_period else pred["risk"]
+    effective_status = "healthy" if in_grace_period else pred["status"]
+
     # Update or add node in registry
     existing = False
     for node in state["nodes"]:
@@ -231,8 +238,8 @@ def ingest_telemetry(pkt: TelemetryPacket):
             node["gpu"] = pkt.gpu
             node["ram"] = pkt.ram
             node["temp"] = pkt.temp
-            node["risk"] = pred["risk"]
-            node["status"] = pred["status"]
+            node["risk"] = effective_risk
+            node["status"] = effective_status
             node["jobs"] = max(2, pkt.jobs or 2)
             node["connection"] = "online"
             node["last_seen"] = int(time.time())
@@ -252,8 +259,8 @@ def ingest_telemetry(pkt: TelemetryPacket):
             "gpu": pkt.gpu,
             "ram": pkt.ram,
             "temp": pkt.temp,
-            "risk": pred["risk"],
-            "status": pred["status"],
+            "risk": effective_risk,
+            "status": effective_status,
             "jobs": max(2, pkt.jobs or 2),
             "source": "real",
             "connection": "online",
@@ -403,13 +410,12 @@ def complete_healing(req: Optional[HealRequest] = None):
             w["status"] = "Running"
             w["progress"] = f"Active on {target_node}"
 
-    # Restore health state of incident node
+    # Restore health state of incident node & activate 60s stabilization window
     for n in state["nodes"]:
         if n["id"] == inc_node:
             n["status"] = "healthy"
             n["risk"] = 14
-            n["temp"] = min(62, n.get("temp", 62))
-            n["cpu"] = min(45, n.get("cpu", 45))
+            n["healed_at"] = int(time.time())
 
     if state["incident"] and state["incident"].get("node") == inc_node:
         state["incident"] = None
@@ -432,3 +438,9 @@ def delete_node(req: DeleteRequest):
     state["nodes"] = [n for n in state["nodes"] if n["id"] != req.id]
     state["tokens"].pop(req.id, None)
     return {"ok": True, "deleted": req.id}
+
+@app.post("/api/activity/clear")
+def clear_activity_log():
+    """Clears all logged activity from the audit trail."""
+    state["activity"] = []
+    return {"ok": True, "message": "Activity audit log cleared"}

@@ -3,14 +3,18 @@ import { useCluster } from '../../context/ClusterContext';
 import { ShieldCheck, ArrowRightLeft, AlertTriangle, Trash2, Download } from 'lucide-react';
 
 export function ActivityLog() {
-  const { activity, setActivity, addToast } = useCluster();
+  const { activity, setActivity, clearActivityLog, addToast } = useCluster();
 
   const exportReport = () => {
     addToast('Report Exported', 'Cluster protection summary saved to downloads', 'var(--cyan)');
   };
 
-  const clearLog = () => {
-    setActivity([]);
+  const clearLog = async () => {
+    if (typeof clearActivityLog === 'function') {
+      await clearActivityLog();
+    } else {
+      setActivity([]);
+    }
     addToast('Activity Log Cleared', 'Audit trail cleared by operator', 'var(--cyan)');
   };
 
