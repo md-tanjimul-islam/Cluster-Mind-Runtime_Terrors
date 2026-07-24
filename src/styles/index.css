@@ -731,6 +731,24 @@ nav {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyan) rgba(15, 23, 42, 0.6);
+}
+
+.node-grid::-webkit-scrollbar {
+  width: 6px;
+}
+.node-grid::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 4px;
+}
+.node-grid::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 4px;
+  box-shadow: 0 0 6px var(--cyan);
 }
 
 .node-card {
@@ -1042,6 +1060,24 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cyan) rgba(15, 23, 42, 0.6);
+}
+
+.job-grid-list::-webkit-scrollbar {
+  width: 6px;
+}
+.job-grid-list::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 4px;
+}
+.job-grid-list::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 4px;
+  box-shadow: 0 0 6px var(--cyan);
 }
 
 .job-card {

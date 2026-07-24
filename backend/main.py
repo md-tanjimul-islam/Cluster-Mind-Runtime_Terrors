@@ -284,6 +284,32 @@ def ingest_telemetry(pkt: TelemetryPacket):
                     "runtime": "Continuous"
                 }
             ])
+    # IsolationForest Real-Time Workload Migration for Real Devices
+    if pred["risk"] >= 65:
+        target_node = next((n["id"] for n in state["nodes"] if n["id"] != pkt.id and n.get("connection") == "online" and n.get("risk", 0) < 45), "gpu-worker-01")
+        
+        state["incident"] = {
+            "node": pkt.id,
+            "risk": pred["risk"],
+            "status": "checkpointing",
+            "progress": 55,
+            "target": target_node
+        }
+
+        migrated_count = 0
+        for w in state["workloads"]:
+            if w.get("node") == pkt.id and w.get("status") != "Migrating":
+                w["status"] = "Migrating"
+                w["progress"] = f"Checkpointing → {target_node}"
+                migrated_count += 1
+
+        if migrated_count > 0:
+            state["activity"].insert(0, {
+                "type": "move",
+                "title": f"IsolationForest Migration ({pkt.id})",
+                "detail": f"{migrated_count} workload(s) migrating → {target_node}",
+                "time": "Just now"
+            })
 
     return {
         "ok": True,
@@ -308,36 +334,17 @@ class AddNodeRequest(BaseModel):
 
 @app.post("/api/register")
 def register_node(req: RegisterRequest):
-    """Generates secret HMAC token and registers a new compute node."""
-    token = secrets.token_hex(16)
+    token = hashlib.sha256(f"{req.id}-{time.time()}".encode()).hexdigest()[:32]
     state["tokens"][req.id] = token
-    if not any(n["id"] == req.id for n in state["nodes"]):
-        state["nodes"].append({
-            "id": req.id,
-            "type": req.type or "NVIDIA GPU worker",
-            "cpu": 0, "gpu": 0, "ram": 0, "temp": 0, "risk": 0,
-            "status": "pending",
-            "jobs": 0,
-            "source": "real",
-            "connection": "waiting"
-        })
-    return {
-        "ok": True,
-        "id": req.id,
-        "token": token
-    }
+    return {"ok": True, "id": req.id, "token": token}
 
 @app.post("/api/node")
-def add_node_route(node: AddNodeRequest):
-    """Registers a new node directly into backend memory state."""
-    new_node_dict = node.dict()
-    for i, existing in enumerate(state["nodes"]):
-        if existing["id"] == node.id:
-            state["nodes"][i] = new_node_dict
-            return {"ok": True, "node": new_node_dict, "updated": True}
-    state["nodes"].append(new_node_dict)
-    return {"ok": True, "node": new_node_dict, "created": True}
-
+def add_node(req: AddNodeRequest):
+    node_dict = req.dict()
+    node_dict["last_seen"] = int(time.time())
+    state["nodes"] = [n for n in state["nodes"] if n["id"] != req.id]
+    state["nodes"].append(node_dict)
+    return {"ok": True, "node": node_dict}
 
 @app.post("/api/scenario")
 def inject_scenario(req: ScenarioRequest):
@@ -349,13 +356,13 @@ def inject_scenario(req: ScenarioRequest):
         if n["id"] == target_node:
             if stype == "thermal":
                 n.update({"temp": 88, "risk": 84, "status": "critical", "cpu": 91})
-                state["incident"] = {"node": target_node, "risk": 84, "status": "checkpointing", "progress": 15}
+                state["incident"] = {"node": target_node, "risk": 84, "status": "checkpointing", "progress": 15, "target": "gpu-worker-01"}
             elif stype == "memory":
                 n.update({"ram": 96, "risk": 78, "status": "critical"})
-                state["incident"] = {"node": target_node, "risk": 78, "status": "checkpointing", "progress": 25}
+                state["incident"] = {"node": target_node, "risk": 78, "status": "checkpointing", "progress": 25, "target": "gpu-worker-01"}
             elif stype == "network":
                 n.update({"cpu": 84, "risk": 71, "status": "critical"})
-                state["incident"] = {"node": target_node, "risk": 71, "status": "checkpointing", "progress": 30}
+                state["incident"] = {"node": target_node, "risk": 71, "status": "checkpointing", "progress": 30, "target": "gpu-worker-01"}
             elif stype == "reset":
                 n.update({"cpu": 42, "gpu": 63, "ram": 48, "temp": 58, "risk": 11, "status": "healthy"})
                 state["incident"] = None
@@ -365,21 +372,33 @@ def inject_scenario(req: ScenarioRequest):
 
 @app.post("/api/heal")
 def complete_healing():
-    """Executes autonomous 6-phase checkpoint & workload migration."""
-    state["incident"] = None
-    for n in state["nodes"]:
-        if n["id"] == "gpu-worker-02":
-            n.update({"temp": 62, "ram": 54, "cpu": 45, "risk": 14, "status": "healthy"})
+    """Executes autonomous IsolationForest checkpoint & workload migration rebalance across nodes."""
+    inc_node = state["incident"].get("node") if state["incident"] else "gpu-worker-02"
+    target_node = state["incident"].get("target", "gpu-worker-01") if state["incident"] else "gpu-worker-01"
 
-    # Update impact stats
+    # Re-assign workloads from high-risk node to target node
+    for w in state["workloads"]:
+        if w.get("node") == inc_node or w.get("status") == "Migrating":
+            w["node"] = target_node
+            w["status"] = "Running"
+            w["progress"] = f"Active on {target_node}"
+
+    # Restore health state of incident node
+    for n in state["nodes"]:
+        if n["id"] == inc_node:
+            n["status"] = "healthy"
+            n["risk"] = 14
+            n["temp"] = min(62, n.get("temp", 62))
+            n["cpu"] = min(45, n.get("cpu", 45))
+
+    state["incident"] = None
     state["impact"]["prevented"] += 1
     state["impact"]["savings"] += 1180
 
-    # Add audit log
     state["activity"].insert(0, {
         "type": "shield",
-        "title": "Self-healing completed",
-        "detail": "gpu-worker-02 restored in 24s · 0 data loss",
+        "title": f"Self-healing completed for {inc_node}",
+        "detail": f"Workloads rebalanced to {target_node} · 0 data loss",
         "time": "Just now"
     })
 
