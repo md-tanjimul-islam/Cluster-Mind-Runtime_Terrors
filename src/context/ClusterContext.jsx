@@ -298,6 +298,18 @@ export function ClusterProvider({ children }) {
 
   const deleteNode = async (nodeId) => {
     try {
+      const stored = localStorage.getItem('clustermind-custom-nodes');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const filtered = (parsed || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeId.toLowerCase());
+        localStorage.setItem('clustermind-custom-nodes', JSON.stringify(filtered));
+      }
+    } catch {}
+
+    setNodes(prev => (prev || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeId.toLowerCase()));
+    setWorkloadJobs(prev => (prev || []).filter(w => w && typeof w.node === 'string' && w.node.toLowerCase() !== nodeId.toLowerCase()));
+
+    try {
       await fetch(`${API_BASE}/api/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -305,16 +317,7 @@ export function ClusterProvider({ children }) {
       });
     } catch {}
 
-    setNodes(prev => {
-      const updated = prev.filter(n => n.id !== nodeId);
-      try {
-        const customToSave = updated.filter(n => n.source === 'real' || n.source === 'demo');
-        localStorage.setItem('clustermind-custom-nodes', JSON.stringify(customToSave));
-      } catch {}
-      return updated;
-    });
-
-    addToast('Node Revoked', `${nodeId} removed and token revoked`, 'var(--red)');
+    addToast('Node Revoked', `${nodeId} removed permanently from cluster`, 'var(--red)');
   };
 
   const clearActivityLog = async () => {
@@ -339,14 +342,15 @@ export function ClusterProvider({ children }) {
   };
 
   const clearAllNodes = async () => {
-    setNodes(prev => (prev || []).filter(n => n && n.source === 'real'));
+    localStorage.removeItem('clustermind-custom-nodes');
+    localStorage.setItem('clustermind-pure-real-mode', 'true');
+    setNodes([]);
     setWorkloadJobs([]);
     setIncident(null);
-    localStorage.setItem('clustermind-pure-real-mode', 'true');
     try {
       await fetch(`${API_BASE}/api/nodes/clear-all`, { method: 'POST' });
     } catch {}
-    addToast('Pure Real-Device Mode Active', 'Cleared synthetic nodes. Connect real physical hardware using terminal scripts.', 'var(--cyan)');
+    addToast('Pure Real-Device Mode Active', 'Cleared all synthetic & custom demo nodes. Connect real physical hardware using terminal scripts.', 'var(--cyan)');
   };
 
   return (
