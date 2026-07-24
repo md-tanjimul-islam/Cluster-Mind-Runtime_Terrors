@@ -77,19 +77,24 @@ export function ConnectNodeModal() {
 
   if (activeModal !== 'node') return null;
 
-  // Base server deployment origin (e.g. https://clustermind-backend.onrender.com or http://localhost:8080)
+  // Base server deployment origin (e.g. https://clustermind-frontend.onrender.com)
   const currentOrigin = window.location.origin;
   const isCloudDeployment = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
 
-  // Use current server deployment URL by default, or fallback to entered LAN IP
-  const host = lanIp.trim() || window.location.hostname;
+  // Derive backend API URL (Render pairs clustermind-frontend with clustermind-backend)
+  const autoBackendUrl = currentOrigin.includes('-frontend')
+    ? currentOrigin.replace('-frontend', '-backend')
+    : currentOrigin;
+
   const serverBaseUrl = (isCloudDeployment || !lanIp)
-    ? currentOrigin
-    : `http://${host}:${lanPort}`;
+    ? autoBackendUrl
+    : `http://${lanIp.trim()}:${lanPort}`;
+
+  const staticBaseUrl = isCloudDeployment ? currentOrigin : serverBaseUrl;
 
   const url      = `${serverBaseUrl}/api/ingest`;
-  const agentUrl = `${serverBaseUrl}/agents/windows-agent.ps1`;
-  const instUrl  = `${serverBaseUrl}/agents/install-windows-agent.ps1`;
+  const agentUrl = `${staticBaseUrl}/agents/windows-agent.ps1`;
+  const instUrl  = `${staticBaseUrl}/agents/install-windows-agent.ps1`;
 
   const unixCommandStr   = `curl -X POST '${url}' -H 'Content-Type: application/json' -d '{"token":"${token}","id":"${nodeName || 'gpu-worker-04'}","cpu":42,"gpu":78,"ram":61,"temp":67}'`;
   const winCommandStr    = `powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=Join-Path $env:TEMP 'install-clustermind.ps1'; Invoke-WebRequest '${instUrl}' -OutFile $p; & $p -Endpoint '${url}' -AgentUrl '${agentUrl}' -Token '${token}' -NodeId '${nodeName || 'gpu-worker-04'}'"`;
