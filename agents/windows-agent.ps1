@@ -108,16 +108,23 @@ function Get-ClusterMindTelemetry {
     $activeJobs = [math]::Max(1, [math]::Min(9, $activeUserProcesses))
 
     $specSummary = if ($gpuName) { "$gpuName · ${totalRamGb}GB" } else { "$cpuName · ${totalRamGb}GB" }
+    $osVersion = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption
+    if (-not $osVersion) { $osVersion = "Windows " + [System.Environment]::OSVersion.Version.ToString() }
 
     return @{
-        token = $Token
-        id    = $NodeId
-        type  = $specSummary
-        cpu   = [int]$cpu
-        gpu   = [int]$gpu
-        ram   = [int]$ram
-        temp  = [int]$temperature
-        jobs  = [int]$activeJobs
+        token     = $Token
+        id        = $NodeId
+        type      = $specSummary
+        cpu       = [int]$cpu
+        gpu       = [int]$gpu
+        ram       = [int]$ram
+        temp      = [int]$temperature
+        jobs      = [int]$activeJobs
+        os        = [string]$osVersion.Trim()
+        cpu_name  = [string]$cpuName.Trim()
+        gpu_name  = [string]$gpuName.Trim()
+        ram_total = "${totalRamGb} GB"
+        agent_ver = "3.2.0-win"
     }
 }
 
