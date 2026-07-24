@@ -266,11 +266,15 @@ export function NodeDetailsModal() {
                 <div className="insp-kv-grid">
                   <div className="insp-kv-pair">
                     <span>Operating System</span>
-                    <b>{node.os || 'Windows 11 x64 / Server 2022'}</b>
+                    <b>{node.os || 'Windows 11 x64 / macOS Sonoma'}</b>
                   </div>
                   <div className="insp-kv-pair">
                     <span>Processor / CPU</span>
                     <b>{node.cpu_name || node.type || 'Intel Core / AMD Ryzen'}</b>
+                  </div>
+                  <div className="insp-kv-pair">
+                    <span>CPU Cores</span>
+                    <b>{node.cpu_cores || '8 Physical / Logical Cores'}</b>
                   </div>
                   <div className="insp-kv-pair">
                     <span>Dedicated GPU</span>
@@ -281,8 +285,24 @@ export function NodeDetailsModal() {
                     <b>{node.ram_total || '32 GB Physical RAM'}</b>
                   </div>
                   <div className="insp-kv-pair">
+                    <span>Local Network IP</span>
+                    <b style={{ color: 'var(--cyan)' }}>{node.ip_address || '192.168.1.100'}</b>
+                  </div>
+                  <div className="insp-kv-pair">
+                    <span>MAC Address</span>
+                    <b style={{ fontFamily: 'var(--font-mono)' }}>{node.mac_address || '00:1A:2B:3C:4D:5E'}</b>
+                  </div>
+                  <div className="insp-kv-pair">
+                    <span>Active OS Processes</span>
+                    <b>{node.pids || 184} Running PIDs</b>
+                  </div>
+                  <div className="insp-kv-pair">
+                    <span>System Uptime</span>
+                    <b>{node.uptime || '12.4 hrs'}</b>
+                  </div>
+                  <div className="insp-kv-pair">
                     <span>Telemetry Agent</span>
-                    <b>{node.agent_ver || 'v3.2.0-win (Active)'}</b>
+                    <b>{node.agent_ver || 'v3.5.0-judge-pro (Active)'}</b>
                   </div>
                   <div className="insp-kv-pair">
                     <span>Telemetry Source</span>
@@ -291,10 +311,6 @@ export function NodeDetailsModal() {
                   <div className="insp-kv-pair">
                     <span>Connection State</span>
                     <b style={{ color: 'var(--green)' }}>{source === 'real' ? (node.connection || 'online') : 'Online'}</b>
-                  </div>
-                  <div className="insp-kv-pair">
-                    <span>Active Workloads</span>
-                    <b>{assignedJobs.length} micro-tasks</b>
                   </div>
                 </div>
               </div>

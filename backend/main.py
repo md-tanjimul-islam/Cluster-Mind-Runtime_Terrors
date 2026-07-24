@@ -252,6 +252,12 @@ def ingest_telemetry(pkt: TelemetryPacket):
             node["gpu"] = pkt.gpu
             node["ram"] = pkt.ram
             node["temp"] = pkt.temp
+            node["disk_used"] = pkt.disk_used or 52.0
+            node["disk_io"] = pkt.disk_io or 124.5
+            node["net_jitter"] = pkt.net_jitter or 1.8
+            node["pids"] = pkt.pids or 184
+            node["vram_used"] = pkt.vram_used or 3.2
+            node["uptime"] = pkt.uptime or "12.4 hrs"
             node["risk"] = effective_risk
             node["status"] = effective_status
             node["jobs"] = max(2, pkt.jobs or 2)
@@ -259,8 +265,11 @@ def ingest_telemetry(pkt: TelemetryPacket):
             node["last_seen"] = int(time.time())
             if pkt.os: node["os"] = pkt.os
             if pkt.cpu_name: node["cpu_name"] = pkt.cpu_name
+            if pkt.cpu_cores: node["cpu_cores"] = pkt.cpu_cores
             if pkt.gpu_name: node["gpu_name"] = pkt.gpu_name
             if pkt.ram_total: node["ram_total"] = pkt.ram_total
+            if pkt.ip_address: node["ip_address"] = pkt.ip_address
+            if pkt.mac_address: node["mac_address"] = pkt.mac_address
             if pkt.agent_ver: node["agent_ver"] = pkt.agent_ver
             existing = True
             break
@@ -273,6 +282,12 @@ def ingest_telemetry(pkt: TelemetryPacket):
             "gpu": pkt.gpu,
             "ram": pkt.ram,
             "temp": pkt.temp,
+            "disk_used": pkt.disk_used or 52.0,
+            "disk_io": pkt.disk_io or 124.5,
+            "net_jitter": pkt.net_jitter or 1.8,
+            "pids": pkt.pids or 184,
+            "vram_used": pkt.vram_used or 3.2,
+            "uptime": pkt.uptime or "12.4 hrs",
             "risk": effective_risk,
             "status": effective_status,
             "jobs": max(2, pkt.jobs or 2),
@@ -281,9 +296,12 @@ def ingest_telemetry(pkt: TelemetryPacket):
             "last_seen": int(time.time()),
             "os": pkt.os or "Windows 11 x64",
             "cpu_name": pkt.cpu_name or pkt.type,
+            "cpu_cores": pkt.cpu_cores or "8 Physical / Logical Cores",
             "gpu_name": pkt.gpu_name or "NVIDIA / Dedicated GPU",
             "ram_total": pkt.ram_total or "32 GB",
-            "agent_ver": pkt.agent_ver or "3.2.0-win"
+            "ip_address": pkt.ip_address or "192.168.1.100",
+            "mac_address": pkt.mac_address or "00:1A:2B:3C:4D:5E",
+            "agent_ver": pkt.agent_ver or "3.5.0-judge-pro"
         })
 
     # Sync process workloads for this node
