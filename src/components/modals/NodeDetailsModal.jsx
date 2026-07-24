@@ -192,10 +192,10 @@ export function NodeDetailsModal() {
 
                 <div className="gauge-card">
                   <div className="gauge-header">
-                    <span>GPU VRAM</span>
+                    <span>GPU VRAM / UTIL</span>
                     <Zap style={{ width: '14px', height: '14px', color: getMetricColor(node.gpu || 0) }} />
                   </div>
-                  <div className="gauge-val">{node.gpu ? `${node.gpu}%` : 'N/A'}</div>
+                  <div className="gauge-val">{(node.gpu !== undefined && node.gpu !== null) ? `${node.gpu}%` : 'N/A'}</div>
                   <div className="gauge-bar-track">
                     <div
                       className="gauge-bar-fill"

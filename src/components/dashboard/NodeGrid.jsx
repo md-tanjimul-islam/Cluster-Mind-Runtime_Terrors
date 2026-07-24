@@ -73,7 +73,7 @@ export function NodeGrid() {
         ) : (
           filteredNodes.map(node => {
             const sc = riskColor(node.risk);
-            const isGpu = node.gpu || (node.type || '').toLowerCase().match(/gpu|rtx|gtx/);
+            const isGpu = (node.gpu !== undefined && node.gpu !== null) || node.gpu_name || (node.type || '').toLowerCase().match(/gpu|rtx|gtx|radeon|amd|intel|iris|arc/);
             const isSelected = node.id === selectedRiskNodeId;
             const assignedJobs = workloadJobs.filter(j => j.node === node.id);
             const conn = node.source === 'real' ? (node.connection || (node.lastSeen ? 'offline' : 'waiting')) : 'online';

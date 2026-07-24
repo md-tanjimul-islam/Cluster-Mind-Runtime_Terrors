@@ -61,7 +61,23 @@ function Get-ClusterMindTelemetry {
         } catch {}
     }
 
-    # 2. Fallback to Windows Performance Counters for AMD / Intel / NVIDIA without SMI PATH
+    # 2. Universal Windows Performance Counter Scanning (Built-in Intel/AMD & External/Dedicated NVIDIA/AMD GPUs)
+    try {
+        $gpuSamples = (Get-Counter '\GPU Engine(*engtype_3D*)\Utilization Percentage' -ErrorAction SilentlyContinue).CounterSamples
+        if (-not $gpuSamples) {
+            $gpuSamples = (Get-Counter '\GPU Engine(*)\Utilization Percentage' -ErrorAction SilentlyContinue).CounterSamples
+        }
+        if ($gpuSamples) {
+            $maxVal = ($gpuSamples | Measure-Object -Property CookedValue -Max).Maximum
+            if ($maxVal -and $maxVal -gt 0) {
+                $counterGpu = [int][math]::Round($maxVal)
+                if ($gpu -eq 0 -or $counterGpu -gt $gpu) {
+                    $gpu = $counterGpu
+                }
+            }
+        }
+    } catch {}
+
     if ($gpu -eq 0) {
         try {
             $gpuCounters = Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -ErrorAction SilentlyContinue |
