@@ -134,7 +134,7 @@ export function ConnectNodeModal() {
     setPingState('testing');
     setTimeout(() => {
       setPingState('success');
-      addToast('Handshake Verified', `Endpoint http://${host}:${lanPort} is active`, 'var(--green)');
+      addToast('Handshake Verified', `Endpoint ${serverBaseUrl}/api/ingest is active`, 'var(--green)');
     }, 1200);
   };
 
@@ -471,10 +471,10 @@ export function ConnectNodeModal() {
                     <span className={pingState === 'testing' ? 'ping-dot-testing' : 'ping-dot-active'}></span>
                     <span>
                       {pingState === 'testing'
-                        ? `Pinging http://${host}:${lanPort}...`
+                        ? `Pinging ${serverBaseUrl}...`
                         : pingState === 'success'
-                          ? `🟢 Handshake Endpoint Active on Port ${lanPort}`
-                          : `Target Endpoint: http://${host}:${lanPort}`}
+                          ? `🟢 Handshake Endpoint Active @ ${serverBaseUrl}`
+                          : `Target Endpoint: ${serverBaseUrl}/api/ingest`}
                     </span>
                   </div>
 
