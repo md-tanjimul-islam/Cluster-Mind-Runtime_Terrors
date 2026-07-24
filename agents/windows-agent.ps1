@@ -35,32 +35,61 @@ function Get-ClusterMindTelemetry {
     $temperature = 45
     $gpuName = ""
 
-    $nvidia = Get-Command nvidia-smi -ErrorAction SilentlyContinue
-    if ($nvidia) {
-        $gpuLine = & $nvidia.Source --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>$null |
-            Select-Object -First 1
-        if ($gpuLine) {
-            $parts = $gpuLine -split ","
-            $gpu = [int]$parts[0].Trim()
-            $temperature = [int]$parts[1].Trim()
-        }
-        $gpuNameLine = & $nvidia.Source --query-gpu=name --format=csv,noheader 2>$null | Select-Object -First 1
-        if ($gpuNameLine) {
-            $gpuName = $gpuNameLine.Trim()
-        }
-    }
-    
-    if ([string]::IsNullOrWhiteSpace($gpuName)) {
+    # 1. Search common NVIDIA SMI executable locations (including NVSMI default install path)
+    $nvidiaSmiPaths = @(
+        "$env:SystemDrive\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe",
+        "$env:SystemRoot\System32\nvidia-smi.exe",
+        "$env:SystemDrive\Program Files\NVIDIA Corporation\Control Panel Client\nvidia-smi.exe",
+        (Get-Command nvidia-smi -ErrorAction SilentlyContinue).Source
+    ) | Where-Object { $_ -and (Test-Path $_) }
+
+    if ($nvidiaSmiPaths.Count -gt 0) {
+        $smiPath = $nvidiaSmiPaths[0]
         try {
-            $gpuObj = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue |
-                Where-Object { $_.Name -notmatch 'Virtual|Remote|Basic Display' } | Select-Object -First 1
-            if ($gpuObj.Name) {
-                $gpuName = $gpuObj.Name.Trim()
+            $gpuLine = & $smiPath --query-gpu=utilization.gpu,temperature.gpu --format=csv,noheader,nounits 2>$null | Select-Object -First 1
+            if ($gpuLine) {
+                $parts = $gpuLine -split ","
+                if ($parts.Count -ge 2) {
+                    $gpu = [int]$parts[0].Trim()
+                    $temperature = [int]$parts[1].Trim()
+                }
+            }
+            $gpuNameLine = & $smiPath --query-gpu=name --format=csv,noheader 2>$null | Select-Object -First 1
+            if ($gpuNameLine) {
+                $gpuName = $gpuNameLine.Trim()
             }
         } catch {}
     }
 
-    if (-not $nvidia) {
+    # 2. Fallback to Windows Performance Counters for AMD / Intel / NVIDIA without SMI PATH
+    if ($gpu -eq 0) {
+        try {
+            $gpuCounters = Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -ErrorAction SilentlyContinue |
+                Where-Object { $_.UtilizationPercentage -gt 0 }
+            if ($gpuCounters) {
+                $maxGpuUtil = ($gpuCounters | Measure-Object -Property UtilizationPercentage -Max).Maximum
+                if ($maxGpuUtil -gt 0) {
+                    $gpu = [int]$maxGpuUtil
+                }
+            }
+        } catch {}
+    }
+
+    # 3. Dedicated GPU Name Detection via WMI / CIM
+    if ([string]::IsNullOrWhiteSpace($gpuName)) {
+        try {
+            $gpuControllers = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -notmatch 'Virtual|Remote|Basic Display|Standard VGA' }
+            $dedicatedGpu = $gpuControllers | Where-Object { $_.Name -match 'NVIDIA|AMD|Radeon|GeForce|RTX|GTX|Quadro|Arc' } | Select-Object -First 1
+            if ($dedicatedGpu) {
+                $gpuName = $dedicatedGpu.Name.Trim()
+            } elseif ($gpuControllers) {
+                $gpuName = ($gpuControllers | Select-Object -First 1).Name.Trim()
+            }
+        } catch {}
+    }
+
+    if (-not $nvidiaSmiPaths) {
         try {
             $thermal = Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction Stop |
                 Select-Object -First 1
@@ -71,7 +100,7 @@ function Get-ClusterMindTelemetry {
                 }
             }
         } catch {
-            # Many Windows laptops do not expose CPU temperature through WMI.
+            # Thermal zone fallback
         }
     }
 
