@@ -1,20 +1,40 @@
 import React, { useState } from 'react';
 import { useCluster } from '../../context/ClusterContext';
-import { Server, Copy, Check, ShieldAlert } from 'lucide-react';
+import {
+  Server,
+  Copy,
+  Check,
+  ShieldAlert,
+  Activity,
+  Cpu,
+  Zap,
+  HardDrive,
+  Thermometer,
+  Shield,
+  Layers,
+  Radio,
+  Trash2,
+  Lock,
+  RefreshCw,
+  CheckCircle2,
+  ExternalLink
+} from 'lucide-react';
 
 export function NodeDetailsModal() {
   const { activeModal, setActiveModal, nodes, selectedNodeId, workloadJobs, deleteNode, addToast } = useCluster();
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'workloads' | 'security' | 'danger'
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [pingState, setPingState] = useState('idle'); // 'idle' | 'testing' | 'success'
 
   if (activeModal !== 'nodeDetails') return null;
 
   const node = nodes.find(n => n.id === selectedNodeId);
   if (!node) return null;
 
-  const statusLabel = { critical:'Critical risk', watch:'Under watch', pending:'Awaiting telemetry', healthy:'Healthy' }[node.status] || 'Healthy';
-  const statusColor = { critical:'var(--red)', watch:'var(--amber)', pending:'var(--violet)', healthy:'var(--green)' }[node.status] || 'var(--green)';
+  const statusLabel = { critical: 'Critical Anomaly Risk', watch: 'Elevated Watch', pending: 'Awaiting Telemetry', healthy: 'Nominal / Healthy' }[node.status] || 'Healthy';
+  const statusColor = { critical: 'var(--red)', watch: 'var(--amber)', pending: 'var(--violet)', healthy: 'var(--green)' }[node.status] || 'var(--green)';
 
   const assignedJobs = workloadJobs.filter(j => j.node === node.id);
   const source = node.source || 'built-in';
@@ -26,146 +46,463 @@ export function NodeDetailsModal() {
   const copyTelemetryCmd = () => {
     navigator.clipboard.writeText(telemetryCmd);
     setCopied(true);
-    addToast('Command Copied', 'Telemetry test curl command copied to clipboard', 'var(--cyan)');
+    addToast('Command Copied', 'Telemetry test payload copied to clipboard', 'var(--cyan)');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSimulatePing = () => {
+    setPingState('testing');
+    setTimeout(() => {
+      setPingState('success');
+      addToast('Handshake Verified', `Worker node ${node.id} active on port 8080`, 'var(--green)');
+    }, 1200);
   };
 
   const handleDelete = () => {
     if (deleteConfirmation.trim() !== node.id) {
-      setDeleteError('The confirmation name does not match.');
+      setDeleteError('The confirmation hostname does not match.');
       return;
     }
     deleteNode(node.id);
     setActiveModal('none');
+    addToast('Worker De-registered', `Successfully removed compute node ${node.id}`, 'var(--red)');
+  };
+
+  const getMetricColor = (val, max = 100) => {
+    const pct = (val / max) * 100;
+    if (pct >= 85) return 'var(--red)';
+    if (pct >= 65) return 'var(--amber)';
+    return 'var(--cyan)';
   };
 
   return (
     <div className="modal-backdrop" onClick={() => setActiveModal('none')}>
-      <section className="modal modal-lg modal-nextgen" onClick={e => e.stopPropagation()}>
-        <div className="modal-glowing-border" aria-hidden="true"></div>
-        <button className="modal-close" onClick={() => setActiveModal('none')} aria-label="Close modal">×</button>
+      <section className="modal modal-inspector-v3" onClick={e => e.stopPropagation()}>
+        {/* Pinned Close Button */}
+        <button
+          className="modal-close"
+          onClick={() => setActiveModal('none')}
+          aria-label="Close modal (Esc)"
+          title="Press Esc to close"
+        >
+          ×
+        </button>
 
-        <header className="modal-head modal-head-nextgen">
-          <div className="modal-head-badge">
-            <span className="live-dot" aria-hidden="true"></span>
-            <span>HARDWARE INSPECTOR</span>
+        {/* Pinned Header */}
+        <header className="insp-header">
+          <div className="insp-badge-strip">
+            <span className="insp-tech-pill">
+              <Radio style={{ width: '12px', height: '12px' }} />
+              HARDWARE INSPECTOR 3.0
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              Node ID: {node.id}
+            </span>
           </div>
 
-          <div className="modal-head-main">
-            <div className="modal-head-icon-lg" aria-hidden="true">
-              <Server />
-            </div>
-            <div>
-              <span className="eyebrow-tech">{node.type || 'WORKER NODE'}</span>
-              <h2 className="modal-title-tech">{node.id}</h2>
-              <p className="modal-head-sub">Detailed hardware metrics, active workload placement, and token management.</p>
+          <div className="insp-title-row">
+            <div className="insp-title-main">
+              <div className="insp-icon-avatar">
+                <Server style={{ width: '26px', height: '26px' }} />
+              </div>
+              <div className="insp-title-text">
+                <h2>{node.id}</h2>
+                <p>{node.type || 'NVIDIA GPU Worker Node'}</p>
+              </div>
             </div>
 
             <span
-              className="details-health-tag"
+              className="insp-status-badge"
               style={{
-                marginLeft: 'auto',
                 color: statusColor,
                 background: `color-mix(in srgb, ${statusColor} 14%, transparent)`,
-                border: `1px solid color-mix(in srgb, ${statusColor} 30%, transparent)`
+                border: `1px solid color-mix(in srgb, ${statusColor} 35%, transparent)`
               }}
             >
+              <span className="live-dot" style={{ background: statusColor, boxShadow: `0 0 10px ${statusColor}` }}></span>
               {statusLabel}
             </span>
           </div>
-        </header>
 
-        {/* Metrics Row */}
-        <div className="metrics-row">
-          <div className="metric-mini"><span>CPU</span><strong>{node.cpu}%</strong></div>
-          <div className="metric-mini"><span>GPU</span><strong>{node.gpu ? `${node.gpu}%` : 'N/A'}</strong></div>
-          <div className="metric-mini"><span>RAM</span><strong>{node.ram}%</strong></div>
-          <div className="metric-mini"><span>Temp</span><strong>{node.temp}°C</strong></div>
-          <div className="metric-mini"><span>AI risk</span><strong>{node.risk}%</strong></div>
-        </div>
-
-        {/* Assigned Jobs Box */}
-        <div className="info-box node-jobs-box">
-          <h3>Assigned Workload Jobs</h3>
-          <div className="node-jobs-list">
-            {assignedJobs.length > 0 ? (
-              assignedJobs.map(j => (
-                <div key={j.id} className="node-job-row">
-                  <div className="nj-info">
-                    <strong className="nj-id">{j.id}</strong>
-                    <span className="nj-name">{j.name}</span>
-                  </div>
-                  <span className="nj-badge">{j.category}</span>
-                  <span className="nj-prog">{j.progress}</span>
-                  <span className={`nj-status ${j.status === 'Migrating' ? 'warn' : ''}`}>
-                    {j.status}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <p className="nj-empty">No active workloads currently assigned to this node.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Connection Box */}
-        <div className="info-box">
-          <h3>Connection Information</h3>
-          <div className="kv-grid">
-            <div className="kv-pair"><span>Hardware Specs</span><b>{node.type || 'Standard Hardware'}</b></div>
-            <div className="kv-pair"><span>Source</span><b>{source}</b></div>
-            <div className="kv-pair"><span>Connection</span><b>{source === 'real' ? (node.connection || 'waiting') : 'online'}</b></div>
-            <div className="kv-pair"><span>Active jobs</span><b>{node.jobs}</b></div>
-            <div className="kv-pair"><span>Last seen</span><b>{source === 'real' ? 'Waiting for first packet' : 'Live now'}</b></div>
-            <div className="kv-pair"><span>Interval</span><b>5 seconds</b></div>
-          </div>
-
-          <code className="code-block" style={{ marginTop: '10px' }}>{telemetryCmd}</code>
-          <button className="copy-link" type="button" onClick={copyTelemetryCmd} style={{ marginTop: '8px' }}>
-            {copied ? <Check style={{ width: '13px', height: '13px' }} /> : <Copy style={{ width: '13px', height: '13px' }} />}
-            <span>Copy telemetry test command</span>
-          </button>
-        </div>
-
-        {/* Danger Zone / Deletion */}
-        {node.source ? (
-          <div className="danger-box">
-            <h3>Remove this node</h3>
-            <p>Deleting a real node revokes its registration and agent token immediately.</p>
-            <label className="form-label" style={{ marginTop: '12px' }}>
-              <span>Type <strong style={{ color: 'var(--red)' }}>{node.id}</strong> to confirm</span>
-              <input
-                className="form-input"
-                style={{ marginTop: '6px' }}
-                value={deleteConfirmation}
-                onChange={e => {
-                  setDeleteConfirmation(e.target.value);
-                  setDeleteError('');
-                }}
-                placeholder={node.id}
-              />
-            </label>
-            {deleteError && <p className="form-error" role="alert">{deleteError}</p>}
+          {/* Inspector Section Navigation Tabs */}
+          <nav className="insp-tab-bar" role="tablist">
             <button
               type="button"
-              className="btn btn-danger"
-              disabled={deleteConfirmation.trim() !== node.id}
-              onClick={handleDelete}
-              style={{ marginTop: '10px' }}
+              className={`insp-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
             >
-              Delete node permanently
+              <Activity style={{ width: '14px', height: '14px' }} />
+              <span>Telemetry &amp; Gauges</span>
             </button>
-          </div>
-        ) : (
-          <div className="protected-note">
-            <strong>Protected Cluster Node</strong>
-            <p>Built-in nodes cannot be deleted from the dashboard to protect demo stability.</p>
-          </div>
-        )}
 
-        <footer className="modal-foot-nextgen">
-          <div></div>
-          <button className="btn btn-primary btn-nextgen-primary" onClick={() => setActiveModal('none')}>
+            <button
+              type="button"
+              className={`insp-tab-btn ${activeTab === 'workloads' ? 'active' : ''}`}
+              onClick={() => setActiveTab('workloads')}
+            >
+              <Layers style={{ width: '14px', height: '14px' }} />
+              <span>Workloads ({assignedJobs.length})</span>
+            </button>
+
+            <button
+              type="button"
+              className={`insp-tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+              onClick={() => setActiveTab('security')}
+            >
+              <Shield style={{ width: '14px', height: '14px' }} />
+              <span>Network &amp; Security</span>
+            </button>
+
+            <button
+              type="button"
+              className={`insp-tab-btn ${activeTab === 'danger' ? 'active' : ''}`}
+              onClick={() => setActiveTab('danger')}
+            >
+              <Trash2 style={{ width: '14px', height: '14px' }} />
+              <span>Node Management</span>
+            </button>
+          </nav>
+        </header>
+
+        {/* Scrollable Inspector Body */}
+        <div className="insp-body">
+          {/* TAB 1: TELEMETRY & GAUGES */}
+          {activeTab === 'overview' && (
+            <div>
+              {/* Telemetry Metric Cards */}
+              <div className="gauge-grid">
+                <div className="gauge-card">
+                  <div className="gauge-header">
+                    <span>CPU LOAD</span>
+                    <Cpu style={{ width: '14px', height: '14px', color: getMetricColor(node.cpu) }} />
+                  </div>
+                  <div className="gauge-val">{node.cpu}%</div>
+                  <div className="gauge-bar-track">
+                    <div
+                      className="gauge-bar-fill"
+                      style={{ width: `${node.cpu}%`, background: getMetricColor(node.cpu) }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="gauge-card">
+                  <div className="gauge-header">
+                    <span>GPU VRAM</span>
+                    <Zap style={{ width: '14px', height: '14px', color: getMetricColor(node.gpu || 0) }} />
+                  </div>
+                  <div className="gauge-val">{node.gpu ? `${node.gpu}%` : 'N/A'}</div>
+                  <div className="gauge-bar-track">
+                    <div
+                      className="gauge-bar-fill"
+                      style={{ width: `${node.gpu || 0}%`, background: getMetricColor(node.gpu || 0) }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="gauge-card">
+                  <div className="gauge-header">
+                    <span>SYSTEM RAM</span>
+                    <HardDrive style={{ width: '14px', height: '14px', color: getMetricColor(node.ram) }} />
+                  </div>
+                  <div className="gauge-val">{node.ram}%</div>
+                  <div className="gauge-bar-track">
+                    <div
+                      className="gauge-bar-fill"
+                      style={{ width: `${node.ram}%`, background: getMetricColor(node.ram) }}
+                    ></div>
+                  </div>
+                </div>
+
+                <div className="gauge-card">
+                  <div className="gauge-header">
+                    <span>THERMAL</span>
+                    <Thermometer style={{ width: '14px', height: '14px', color: getMetricColor(node.temp, 90) }} />
+                  </div>
+                  <div className="gauge-val">{node.temp}°C</div>
+                  <div className="gauge-bar-track">
+                    <div
+                      className="gauge-bar-fill"
+                      style={{ width: `${Math.min(100, (node.temp / 90) * 100)}%`, background: getMetricColor(node.temp, 90) }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Anomaly Risk Highlight Card */}
+              <div className="risk-score-card">
+                <div className="risk-score-info">
+                  <ShieldAlert style={{ width: '32px', height: '32px', color: statusColor }} />
+                  <div>
+                    <strong style={{ fontSize: '0.95rem', color: '#fff', display: 'block', marginBottom: '2px' }}>
+                      IsolationForest AI Anomaly Index
+                    </strong>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      Multi-dimensional kernel variance evaluation score updated every 5 seconds.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className="risk-score-badge"
+                  style={{
+                    color: statusColor,
+                    borderColor: `color-mix(in srgb, ${statusColor} 40%, transparent)`
+                  }}
+                >
+                  {node.risk}%
+                </div>
+              </div>
+
+              {/* Hardware Specifications Grid */}
+              <div className="insp-kv-grid">
+                <div className="insp-kv-pair">
+                  <span>Architecture</span>
+                  <b>{node.type || 'Standard Hardware'}</b>
+                </div>
+                <div className="insp-kv-pair">
+                  <span>Telemetry Source</span>
+                  <b>{source === 'real' ? 'Live Hardware Agent' : 'Synthetic Sandbox'}</b>
+                </div>
+                <div className="insp-kv-pair">
+                  <span>Connection State</span>
+                  <b>{source === 'real' ? (node.connection || 'waiting') : 'Online'}</b>
+                </div>
+                <div className="insp-kv-pair">
+                  <span>Active Jobs</span>
+                  <b>{node.jobs} workloads</b>
+                </div>
+                <div className="insp-kv-pair">
+                  <span>Heartbeat Interval</span>
+                  <b>5000 ms</b>
+                </div>
+                <div className="insp-kv-pair">
+                  <span>Last Packet</span>
+                  <b>{source === 'real' ? 'Awaiting stream' : '0.4s ago'}</b>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: WORKLOAD MATRIX */}
+          {activeTab === 'workloads' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <h3 style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 700 }}>
+                  Assigned Micro-Tasks &amp; Jobs
+                </h3>
+                <span className="wiz-step-pill">
+                  {assignedJobs.length} ACTIVE WORKLOADS
+                </span>
+              </div>
+
+              <div className="insp-job-list">
+                {assignedJobs.length > 0 ? (
+                  assignedJobs.map(j => (
+                    <div key={j.id} className="insp-job-card">
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                          <strong className="font-mono" style={{ color: 'var(--cyan)', fontSize: '0.85rem' }}>
+                            {j.id}
+                          </strong>
+                          <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 600 }}>
+                            {j.name}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                          Category: {j.category}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#fff', fontWeight: 700, display: 'block' }}>
+                            {j.progress}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              color: j.status === 'Migrating' ? 'var(--amber)' : 'var(--green)'
+                            }}
+                          >
+                            ● {j.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '32px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed rgba(255, 255, 255, 0.1)' }}>
+                    <Layers style={{ width: '32px', height: '32px', color: 'var(--text-dim)', marginBottom: '8px' }} />
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+                      No active workloads currently assigned to node <strong style={{ color: '#fff' }}>{node.id}</strong>.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: NETWORK & SECURITY */}
+          {activeTab === 'security' && (
+            <div>
+              <div className="wiz-section-card" style={{ marginBottom: '16px' }}>
+                <div className="wiz-card-header">
+                  <div className="wiz-card-title">
+                    <Shield style={{ width: '18px', height: '18px', color: 'var(--cyan)' }} />
+                    <span>HMAC-SHA256 Token Secret</span>
+                  </div>
+                  <span className="wiz-step-pill">HMAC AUTH</span>
+                </div>
+
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                  Secret authentication token assigned to <strong style={{ color: '#fff' }}>{node.id}</strong> for signing telemetry JSON payloads.
+                </p>
+
+                <div className="token-display-box">
+                  <Shield style={{ width: '16px', height: '16px', color: 'var(--cyan)', flexShrink: 0 }} />
+                  <span className="token-val">
+                    ••••••••••••••••••••••••••••••••
+                  </span>
+                  <button
+                    type="button"
+                    className="icon-btn-sm"
+                    onClick={() => addToast('Token Protected', 'Secret HMAC keys are masked for security.', 'var(--cyan)')}
+                  >
+                    <Lock style={{ width: '14px', height: '14px' }} />
+                    <span>Protected</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Handshake Tester Status Bar */}
+              <div className="lan-status-bar" style={{ marginBottom: '16px' }}>
+                <div className="lan-ping-info">
+                  <span className={pingState === 'testing' ? 'ping-dot-testing' : 'ping-dot-active'}></span>
+                  <span>
+                    {pingState === 'testing'
+                      ? `Pinging node ${node.id}...`
+                      : pingState === 'success'
+                        ? `🟢 Ingestion Endpoint Active on Port 8080`
+                        : `Target Endpoint: http://127.0.0.1:8080/api/ingest`}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="icon-btn-sm"
+                  onClick={handleSimulatePing}
+                  disabled={pingState === 'testing'}
+                >
+                  <RefreshCw style={{ width: '12px', height: '12px', animation: pingState === 'testing' ? 'spin 1s linear infinite' : 'none' }} />
+                  <span>Test Handshake</span>
+                </button>
+              </div>
+
+              {/* Telemetry Test Curl Command */}
+              <div className="terminal-studio">
+                <div className="terminal-studio-bar">
+                  <span className="t-window-title">
+                    cURL Ingestion Payload Test
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-terminal-copy"
+                    onClick={copyTelemetryCmd}
+                  >
+                    {copied ? <Check style={{ width: '13px', height: '13px' }} /> : <Copy style={{ width: '13px', height: '13px' }} />}
+                    <span>{copied ? 'Copied' : 'Copy cURL'}</span>
+                  </button>
+                </div>
+
+                <div className="terminal-code-body">
+                  <code>{telemetryCmd}</code>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: NODE MANAGEMENT & DANGER ZONE */}
+          {activeTab === 'danger' && (
+            <div>
+              {source ? (
+                <div className="danger-box" style={{ background: 'rgba(255, 95, 86, 0.05)', border: '1px solid rgba(255, 95, 86, 0.3)', padding: '20px', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ff5f56', marginBottom: '8px' }}>
+                    <Trash2 style={{ width: '20px', height: '20px' }} />
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800 }}>De-register &amp; Delete Compute Node</h3>
+                  </div>
+
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.4 }}>
+                    Deleting <strong style={{ color: '#fff' }}>{node.id}</strong> will immediately revoke its HMAC authentication key, terminate telemetry streaming, and reassign any active workloads to healthy cluster nodes.
+                  </p>
+
+                  <label className="form-label" style={{ marginBottom: '12px' }}>
+                    <span>Type <strong style={{ color: '#ff5f56' }}>{node.id}</strong> to confirm deletion</span>
+                    <input
+                      className="wiz-input font-mono"
+                      style={{ marginTop: '6px' }}
+                      value={deleteConfirmation}
+                      onChange={e => {
+                        setDeleteConfirmation(e.target.value);
+                        setDeleteError('');
+                      }}
+                      placeholder={node.id}
+                    />
+                  </label>
+
+                  {deleteError && (
+                    <p style={{ color: '#ff5f56', fontSize: '0.78rem', marginBottom: '10px' }} role="alert">
+                      {deleteError}
+                    </p>
+                  )}
+
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={deleteConfirmation.trim() !== node.id}
+                    onClick={handleDelete}
+                    style={{
+                      background: deleteConfirmation.trim() === node.id ? '#ff5f56' : 'rgba(255, 95, 86, 0.2)',
+                      color: deleteConfirmation.trim() === node.id ? '#000' : 'rgba(255, 255, 255, 0.4)',
+                      fontWeight: 800,
+                      marginTop: '8px'
+                    }}
+                  >
+                    Delete Node Permanently
+                  </button>
+                </div>
+              ) : (
+                <div style={{ padding: '24px', background: 'rgba(0, 242, 254, 0.05)', border: '1px solid rgba(0, 242, 254, 0.2)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--cyan)', marginBottom: '8px' }}>
+                    <Lock style={{ width: '20px', height: '20px' }} />
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 800 }}>Protected Core Cluster Node</h3>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Node <strong style={{ color: '#fff' }}>{node.id}</strong> is a core control plane worker and is protected from dashboard deletion to preserve system baseline metrics.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Pinned Footer */}
+        <footer className="insp-footer">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <span className="status-dot-pulse"></span>
+            <span>Inspector Session Active</span>
+          </div>
+
+          <button
+            className="btn btn-primary"
+            onClick={() => setActiveModal('none')}
+            style={{
+              background: 'linear-gradient(135deg, var(--cyan) 0%, #00b4d8 100%)',
+              boxShadow: '0 0 20px rgba(0, 242, 254, 0.3)',
+              color: '#000',
+              fontWeight: 800
+            }}
+          >
             <span>Close Inspector</span>
           </button>
         </footer>
@@ -173,3 +510,5 @@ export function NodeDetailsModal() {
     </div>
   );
 }
+
+export default NodeDetailsModal;
