@@ -1,6 +1,6 @@
 import time
 import secrets
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -74,16 +74,23 @@ class TelemetryPacket(BaseModel):
     ram: float
     temp: float
     disk_io: Optional[float] = 100.0
+    disk_used: Optional[float] = 52.0
     net_jitter: Optional[float] = 2.0
+    pids: Optional[int] = 184
+    vram_used: Optional[float] = 3.2
+    uptime: Optional[str] = "12.4 hrs"
     type: Optional[str] = "Standard Worker"
     jobs: Optional[int] = 2
     os: Optional[str] = None
     cpu_name: Optional[str] = None
+    cpu_cores: Optional[str] = None
     gpu_name: Optional[str] = None
     ram_total: Optional[str] = None
-    agent_ver: Optional[str] = "3.2.0-win"
+    ip_address: Optional[str] = None
+    mac_address: Optional[str] = None
+    agent_ver: Optional[str] = "3.5.0-judge-pro"
+    connection: Optional[str] = "online"
     process_jobs: Optional[List[Dict[str, Any]]] = None
-    connection: Optional[str] = None
 
 class PredictRequest(BaseModel):
     cpu: float
