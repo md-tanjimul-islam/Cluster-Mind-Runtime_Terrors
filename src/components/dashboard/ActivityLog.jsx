@@ -63,9 +63,16 @@ export function ActivityLog() {
               <div className="act-icon">
                 {getIcon(act.type)}
               </div>
-              <div>
-                <div className="act-title">{act.title}</div>
-                <div className="act-detail">{act.detail}</div>
+              <div style={{ flex: 1 }}>
+                <div className="act-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span>{act.title}</span>
+                  {act.verified && (
+                    <span className="pill active" style={{ background: 'rgba(0, 242, 254, 0.15)', color: 'var(--cyan)', fontSize: '0.65rem', padding: '1px 6px' }}>
+                      ✓ Recovery Verified (0 lost steps)
+                    </span>
+                  )}
+                </div>
+                <div className="act-detail" style={{ lineHeight: '1.4', marginTop: '2px' }}>{act.detail}</div>
               </div>
               <div className="act-time">{act.time}</div>
             </div>

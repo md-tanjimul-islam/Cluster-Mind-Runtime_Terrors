@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export function NodeDetailsModal() {
-  const { activeModal, setActiveModal, nodes, selectedNodeId, workloadJobs, deleteNode, addToast } = useCluster();
+  const { activeModal, setActiveModal, nodes, selectedNodeId, workloadJobs, deleteNode, toggleSafeMode, addToast } = useCluster();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'workloads' | 'security' | 'danger'
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteError, setDeleteError] = useState('');
@@ -33,8 +33,9 @@ export function NodeDetailsModal() {
   const node = nodes.find(n => n.id === selectedNodeId);
   if (!node) return null;
 
-  const statusLabel = { critical: 'Critical Anomaly Risk', watch: 'Elevated Watch', pending: 'Awaiting Telemetry', healthy: 'Nominal / Healthy' }[node.status] || 'Healthy';
-  const statusColor = { critical: 'var(--red)', watch: 'var(--amber)', pending: 'var(--violet)', healthy: 'var(--green)' }[node.status] || 'var(--green)';
+  const isSafeMode = node.safe_mode || node.status === 'safe_mode';
+  const statusLabel = isSafeMode ? '🛡️ Safe Mode (Quarantined)' : ({ critical: 'Critical Anomaly Risk', watch: 'Elevated Watch', pending: 'Awaiting Telemetry', healthy: 'Nominal / Healthy' }[node.status] || 'Healthy');
+  const statusColor = isSafeMode ? 'var(--amber)' : ({ critical: 'var(--red)', watch: 'var(--amber)', pending: 'var(--violet)', healthy: 'var(--green)' }[node.status] || 'var(--green)');
 
   const rawAssignedJobs = workloadJobs.filter(j => j.node === node.id);
   const defaultRealJobs = [
@@ -274,6 +275,41 @@ export function NodeDetailsModal() {
                 >
                   {node.risk}%
                 </div>
+              </div>
+
+              {/* Safe Mode (Quarantine / NoSchedule) Protection Card */}
+              <div style={{ marginTop: '14px', background: isSafeMode ? 'rgba(255, 171, 0, 0.08)' : 'rgba(255, 255, 255, 0.02)', border: isSafeMode ? '1px solid var(--amber)' : '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <Lock style={{ width: '16px', height: '16px', color: isSafeMode ? 'var(--amber)' : 'var(--cyan)' }} />
+                    <strong style={{ fontSize: '0.88rem', color: '#fff' }}>
+                      Safe Mode Protection (Quarantine / NoSchedule)
+                    </strong>
+                    {isSafeMode && (
+                      <span className="pill active" style={{ background: 'var(--amber)', color: '#000', fontSize: '0.65rem', fontWeight: 800 }}>
+                        ACTIVE QUARANTINE
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, maxWidth: '420px' }}>
+                    {isSafeMode
+                      ? 'Node is quarantined in Safe Mode. New workloads are blocked from scheduling until health normalizes.'
+                      : 'Enable Safe Mode manually to isolate this node and block new workloads.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-ghost-sm"
+                  onClick={() => toggleSafeMode(node.id, !isSafeMode)}
+                  style={{
+                    color: isSafeMode ? 'var(--green)' : 'var(--amber)',
+                    borderColor: isSafeMode ? 'var(--green)' : 'var(--amber)',
+                    fontWeight: 700
+                  }}
+                >
+                  {isSafeMode ? 'Release from Safe Mode' : 'Quarantine in Safe Mode'}
+                </button>
               </div>
 
               {/* System Configuration & Hardware Profile */}

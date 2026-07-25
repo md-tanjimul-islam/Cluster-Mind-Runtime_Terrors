@@ -8,7 +8,7 @@ const HEALING_STAGES = [
   { id: 3, title: 'State Checkpoint', detail: 'Saving active process RAM & PID state' },
   { id: 4, title: 'Target Allocation', detail: 'Selected healthy destination node' },
   { id: 5, title: 'Live Migration', detail: 'Zero-downtime workload stream transfer' },
-  { id: 6, title: 'Health Restored', detail: 'Cluster rebalance & audit log saved' }
+  { id: 6, title: 'Recovery Verification', detail: 'Verified 0 lost steps · Node in Safe Mode' }
 ];
 
 export function HealingProcessPanel() {
@@ -29,7 +29,7 @@ export function HealingProcessPanel() {
   const atRiskNodes = nodes.filter(n => 
     n.risk >= riskThreshold || 
     n.status === 'critical' || 
-    (incident && incident.node === n.id)
+    (incident && incident.node && String(incident.node).toLowerCase() === String(n.id).toLowerCase())
   );
 
   // CRITICAL REQUIREMENT 1: If there is no node at risk, hide this section completely!
@@ -47,7 +47,7 @@ export function HealingProcessPanel() {
 
   // Dynamically allocate healthy target node for active workload migration
   const targetHealthyNode = nodes.find(n => 
-    n.id !== currentNode?.id && 
+    String(n.id).toLowerCase() !== String(currentNode?.id).toLowerCase() && 
     n.connection !== 'offline' && 
     n.risk < 45
   )?.id || 'gpu-worker-01';
@@ -59,6 +59,12 @@ export function HealingProcessPanel() {
     addToast('Healing Mode Switched', `Mode set to ${newMode === 'auto' ? 'Autonomous Auto-Heal' : 'Manual Admin Approval'}`, 'var(--cyan)');
   };
 
+  // Reset stage progress whenever current node changes
+  useEffect(() => {
+    setActiveStage(1);
+    setStageProgress(0);
+  }, [currentNode?.id]);
+
   // Autonomous progress ticker when in auto mode
   useEffect(() => {
     if (!currentNode) return;
@@ -68,13 +74,13 @@ export function HealingProcessPanel() {
       const timer = setInterval(() => {
         setStageProgress(prev => {
           if (prev >= 100) {
-            setActiveStage(current => {
-              if (current >= 6) {
+            setActiveStage(stage => {
+              if (stage >= 6) {
                 clearInterval(timer);
                 completeHealing(currentNode.id);
                 return 6;
               }
-              return current + 1;
+              return stage + 1;
             });
             return 0;
           }

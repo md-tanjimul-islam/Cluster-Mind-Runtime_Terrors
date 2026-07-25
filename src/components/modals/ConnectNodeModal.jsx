@@ -180,6 +180,7 @@ export function ConnectNodeModal() {
       };
       addNode({
         id: name,
+        token: token,
         type: nodeType.replace('Real agent', 'Demo device'),
         ...profiles[demoCondition],
         jobs: 2,
@@ -191,6 +192,7 @@ export function ConnectNodeModal() {
       let name = nodeName.trim() || `gpu-worker-0${nodes.length + 1}`;
       addNode({
         id: name,
+        token: token,
         type: nodeType,
         cpu: 0, gpu: 0, ram: 0, temp: 0, risk: 0,
         status: 'pending',

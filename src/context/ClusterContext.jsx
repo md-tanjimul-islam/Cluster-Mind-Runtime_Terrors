@@ -60,6 +60,13 @@ export function ClusterProvider({ children }) {
     { type: 'shield', title: 'Incident prevented',        detail: '$1,180 estimated compute saved',   time: '2h'  }
   ]);
   const [workloadJobs, setWorkloadJobs] = useState(INITIAL_WORKLOAD_JOBS);
+  const [successReport, setSuccessReport] = useState({
+    success_rate: '100%',
+    total_migrations: 47,
+    verified_recoveries: 47,
+    avg_recovery_time: '24s',
+    false_alarms: 2
+  });
   const [toasts, setToasts] = useState([]);
 
   // UI Controls & Filters
@@ -253,6 +260,9 @@ export function ClusterProvider({ children }) {
               recovery: typeof data.impact.recovery === 'number' ? data.impact.recovery : (prev?.recovery ?? 24)
             }));
           }
+          if (data && data.success_report && typeof data.success_report === 'object') {
+            setSuccessReport(data.success_report);
+          }
           if (data && data.activity && Array.isArray(data.activity)) {
             setActivity(data.activity.filter(a => a && typeof a.title === 'string'));
           }
@@ -367,16 +377,57 @@ export function ClusterProvider({ children }) {
       setIncident(null);
     }
 
-    setNodes(prev => prev.map(n => n.id === nodeToHeal ? { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, status: 'healthy' } : n));
+    setNodes(prev => prev.map(n => n.id === nodeToHeal ? { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, safe_mode: true, status: 'safe_mode' } : n));
     setWorkloadJobs(prev => prev.map(j => j.node === nodeToHeal ? { ...j, node: healthyTarget, status: 'Running', progress: `Active on ${healthyTarget}` } : j));
 
     setImpact(prev => ({ ...prev, prevented: prev.prevented + 1, savings: prev.savings + 1180 }));
+    setSuccessReport(prev => {
+      const tot = (prev?.total_migrations || 47) + 1;
+      const ver = (prev?.verified_recoveries || 47) + 1;
+      return {
+        ...prev,
+        total_migrations: tot,
+        verified_recoveries: ver,
+        success_rate: `${Math.round((ver / tot) * 100)}%`
+      };
+    });
     setActivity(prev => [
-      { type: 'shield', title: `Self-healing completed for ${nodeToHeal}`, detail: `Workloads rebalanced to ${healthyTarget} · 0 data loss`, time: 'Just now' },
+      {
+        type: 'shield',
+        title: `Recovery Verified & Safe Mode Engaged (${nodeToHeal})`,
+        detail: `Workloads verified at exact checkpoint on ${healthyTarget} with 0 lost steps and 0.00s data loss. Node ${nodeToHeal} placed in Safe Mode (Quarantined) to block new work.`,
+        time: 'Just now',
+        verified: true,
+        lost_steps: 0
+      },
       ...prev
     ]);
-    addToast('Incident Resolved', `Workloads on ${nodeToHeal} migrated → ${healthyTarget}`, 'var(--green)');
+    addToast('Recovery Verified & Safe Mode Engaged', `Node ${nodeToHeal} quarantined in Safe Mode · 0 Lost Steps`, 'var(--green)');
     playSound(880, 0.25);
+  };
+
+  const toggleSafeMode = async (nodeId, enable) => {
+    setNodes(prev => prev.map(n => {
+      if (n.id.toLowerCase() === String(nodeId).toLowerCase()) {
+        const nextStatus = enable ? 'safe_mode' : (n.status === 'safe_mode' ? 'healthy' : n.status);
+        return { ...n, safe_mode: enable, status: nextStatus };
+      }
+      return n;
+    }));
+
+    try {
+      await fetch(`${API_BASE}/api/node/safemode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: nodeId, safe_mode: enable })
+      });
+    } catch {}
+
+    addToast(
+      enable ? 'Safe Mode Activated' : 'Safe Mode Released',
+      `Node ${nodeId} ${enable ? 'placed in Safe Mode (Quarantined / NoSchedule)' : 'released back to active scheduling'}`,
+      enable ? 'var(--amber)' : 'var(--cyan)'
+    );
   };
 
   // Node Management (Optimistic local update + LocalStorage persistence + Backend sync)
@@ -434,6 +485,7 @@ export function ClusterProvider({ children }) {
     // 3. Immediately filter React state
     setNodes(prev => (prev || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeLower));
     setWorkloadJobs(prev => (prev || []).filter(w => w && typeof w.node === 'string' && w.node.toLowerCase() !== nodeLower));
+    setIncident(prev => (prev && prev.node && String(prev.node).toLowerCase() === nodeLower) ? null : prev);
 
     // 4. Send POST to backend delete endpoint
     try {
@@ -500,6 +552,7 @@ export function ClusterProvider({ children }) {
       selectedNodeId, setSelectedNodeId,
       selectedRiskNodeId, setSelectedRiskNodeId,
       demoStep, setDemoStep,
+      successReport, toggleSafeMode,
       injectScenario, completeHealing, addNode, deleteNode, playSound, resetSystem, clearAllNodes
     }}>
       {children}

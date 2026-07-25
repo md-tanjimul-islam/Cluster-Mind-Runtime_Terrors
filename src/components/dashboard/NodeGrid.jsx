@@ -93,7 +93,14 @@ export function NodeGrid() {
                   <div className="node-ident">
                     <span className="node-dot"></span>
                     <div>
-                      <strong>{node.id}</strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong>{node.id}</strong>
+                        {(node.safe_mode || node.status === 'safe_mode') && (
+                          <span className="pill active" style={{ background: 'rgba(255, 171, 0, 0.2)', color: 'var(--amber)', fontSize: '0.625rem', padding: '1px 6px', height: 'auto' }} title="Safe Mode active: Blocking new workloads from scheduling">
+                            🛡️ Safe Mode
+                          </span>
+                        )}
+                      </div>
                       <small>{node.type || ''}</small>
                     </div>
                   </div>

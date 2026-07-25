@@ -11,6 +11,7 @@ import { JobsPanel } from './components/dashboard/JobsPanel';
 import { ActivityLog } from './components/dashboard/ActivityLog';
 import { ImpactChart } from './components/dashboard/ImpactChart';
 import { HealingProcessPanel } from './components/dashboard/HealingProcessPanel';
+import { SuccessReportWidget } from './components/dashboard/SuccessReportWidget';
 
 import { ConnectNodeModal } from './components/modals/ConnectNodeModal';
 import { TopologyModal } from './components/modals/TopologyModal';
@@ -60,6 +61,7 @@ export function App() {
       <main id="main">
         <Hero />
         <MetricsGrid />
+        <ErrorBoundary><SuccessReportWidget /></ErrorBoundary>
 
         <section className="dashboard-grid" aria-label="Dashboard panels">
           <ErrorBoundary><HealingProcessPanel /></ErrorBoundary>
