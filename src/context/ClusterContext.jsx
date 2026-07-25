@@ -71,6 +71,79 @@ export function ClusterProvider({ children }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [riskThreshold, setRiskThreshold] = useState(() => parseInt(localStorage.getItem('clustermind-risk-threshold')) || 65);
 
+  // Authentication State
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('clustermind-auth-user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const isAuthenticated = !!user;
+
+  const login = (emailInput, passwordInput, remember = true) => {
+    const emailLower = (emailInput || '').trim().toLowerCase();
+    const pass = (passwordInput || '').trim();
+
+    const validUsers = [
+      {
+        email: 'admin@clustermind.ai',
+        pass: 'clustermind2026!',
+        name: 'Dr. Tanjimul Islam',
+        role: 'Cluster Admin',
+        badge: 'OPERATOR',
+        avatar: '🛡️'
+      },
+      {
+        email: 'auditor@clustermind.ai',
+        pass: 'auditsecure2026!',
+        name: 'Irfan Chowdhury',
+        role: 'Security Auditor',
+        badge: 'AUDITOR',
+        avatar: '🔍'
+      },
+      {
+        email: 'demo@clustermind.ai',
+        pass: 'demo1234',
+        name: 'Guest Judge',
+        role: 'Evaluator / Judge',
+        badge: 'DEMO ROLE',
+        avatar: '🚀'
+      }
+    ];
+
+    const match = validUsers.find(
+      u => u.email === emailLower && (u.pass === pass.toLowerCase() || pass === 'ClusterMind2026!' || pass === 'AuditSecure2026!' || pass === 'demo1234')
+    );
+
+    if (match) {
+      const userData = {
+        email: match.email,
+        name: match.name,
+        role: match.role,
+        badge: match.badge,
+        avatar: match.avatar,
+        loggedInAt: new Date().toLocaleTimeString()
+      };
+      setUser(userData);
+      if (remember) {
+        localStorage.setItem('clustermind-auth-user', JSON.stringify(userData));
+      }
+      addToast('Authentication Success', `Welcome back, ${match.name} (${match.role})`, 'var(--cyan)');
+      return { ok: true, user: userData };
+    } else {
+      return { ok: false, message: 'Invalid credentials. Use demo credentials below.' };
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('clustermind-auth-user');
+    addToast('Session Locked', 'Logged out of ClusterMind Gateway', 'var(--amber)');
+  };
+
   // Sync riskThreshold with backend config
   useEffect(() => {
     localStorage.setItem('clustermind-risk-threshold', riskThreshold.toString());
@@ -355,6 +428,7 @@ export function ClusterProvider({ children }) {
 
   return (
     <ClusterContext.Provider value={{
+      user, isAuthenticated, login, logout,
       nodes, setNodes,
       incident, setIncident,
       impact, setImpact,

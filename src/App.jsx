@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCluster } from './context/ClusterContext';
+import { LoginPage } from './components/auth/LoginPage';
 import { Topbar } from './components/layout/Topbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { Hero } from './components/dashboard/Hero';
@@ -20,8 +21,25 @@ import { SettingsModal } from './components/modals/SettingsModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 export function App() {
-  const { toasts } = useCluster();
+  const { isAuthenticated, toasts } = useCluster();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  if (!isAuthenticated) {
+    return (
+      <ErrorBoundary>
+        <LoginPage />
+        {/* Toast Region */}
+        <div className="toast-region" role="status" aria-live="polite">
+          {toasts.map(toast => (
+            <div key={toast.id} className="toast" style={{ '--tc': toast.color }}>
+              <strong>{toast.title}</strong>
+              <small>{toast.detail}</small>
+            </div>
+          ))}
+        </div>
+      </ErrorBoundary>
+    );
+  }
 
   return (
     <ErrorBoundary>

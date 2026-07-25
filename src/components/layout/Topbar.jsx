@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useCluster } from '../../context/ClusterContext';
-import { Sun, Moon, Volume2, VolumeX, PanelLeftClose, PanelLeftOpen, Menu, Settings } from 'lucide-react';
+import { Sun, Moon, Volume2, VolumeX, PanelLeftClose, PanelLeftOpen, Menu, Settings, LogOut, Shield } from 'lucide-react';
 
 export function Topbar({ onMobileMenuToggle }) {
-  const { theme, toggleTheme, sound, toggleSound, sidebarMini, toggleSidebar, setActiveModal } = useCluster();
+  const { user, logout, theme, toggleTheme, sound, toggleSound, sidebarMini, toggleSidebar, setActiveModal } = useCluster();
   const [timeStr, setTimeStr] = useState('');
 
   useEffect(() => {
@@ -50,7 +50,32 @@ export function Topbar({ onMobileMenuToggle }) {
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>{timeStr}</span>
       </div>
 
-      <div className="topbar-actions">
+      <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* User Auth Profile Badge */}
+        {user && (
+          <div 
+            className="user-profile-badge" 
+            title={`Authenticated as ${user.name} (${user.email})`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              background: 'rgba(0, 242, 254, 0.08)',
+              border: '1px solid rgba(0, 242, 254, 0.2)',
+              fontSize: '0.75rem',
+              color: 'var(--text)'
+            }}
+          >
+            <span style={{ fontSize: '0.9rem' }}>{user.avatar || '🛡️'}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }} className="topbar-center-hide-mobile">
+              <strong style={{ fontSize: '0.75rem', color: 'var(--text)' }}>{user.name}</strong>
+              <small style={{ fontSize: '0.65rem', color: 'var(--cyan)' }}>{user.role}</small>
+            </div>
+          </div>
+        )}
+
         <button
           className={`icon-btn ${sound ? 'active' : ''}`}
           onClick={toggleSound}
@@ -78,9 +103,16 @@ export function Topbar({ onMobileMenuToggle }) {
           <Settings />
         </button>
 
-        <div className="avatar" title="Runtime Terrors Operator" aria-label="User avatar">
-          RT
-        </div>
+        {/* Log Out / Lock Session Button */}
+        <button
+          className="icon-btn"
+          onClick={logout}
+          title="Lock Session / Sign Out of Gateway"
+          aria-label="Sign out"
+          style={{ color: 'var(--red, #ff5f56)', borderColor: 'rgba(255, 95, 86, 0.3)' }}
+        >
+          <LogOut style={{ width: '16px', height: '16px' }} />
+        </button>
       </div>
     </header>
   );
