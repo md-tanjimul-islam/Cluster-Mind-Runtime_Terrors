@@ -70,7 +70,15 @@ export function ClusterProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   // UI Controls & Filters
-  const [theme, setTheme] = useState(localStorage.getItem('clustermind-theme') || 'dark');
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('clustermind-theme');
+    if (saved) return saved;
+    // Fall back to OS-level color scheme preference
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+    return 'dark';
+  });
   const [sound, setSound] = useState(false);
   const [sidebarMini, setSidebarMini] = useState(localStorage.getItem('clustermind-sidebar') === 'mini');
   const [statusFilter, setStatusFilter] = useState('all');

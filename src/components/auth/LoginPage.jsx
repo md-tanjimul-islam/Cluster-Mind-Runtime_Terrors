@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useCluster } from '../../context/ClusterContext';
-import { Shield, Lock, Mail, Key, Eye, EyeOff, Cpu, Activity, CheckCircle2, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { Shield, Lock, Mail, Key, Eye, EyeOff, Cpu, Activity, CheckCircle2, AlertCircle, Sparkles, ArrowRight, Sun, Moon } from 'lucide-react';
 
 export function LoginPage() {
-  const { login } = useCluster();
+  const { login, theme, toggleTheme } = useCluster();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,6 +39,16 @@ export function LoginPage() {
     <div className="login-gateway-container">
       <div className="login-backdrop-glow"></div>
       <div className="login-grid-pattern"></div>
+
+      {/* Theme Toggle — top-right corner */}
+      <button
+        className="login-theme-toggle"
+        onClick={toggleTheme}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        aria-label="Toggle theme"
+      >
+        {theme === 'dark' ? <Sun style={{ width: '18px', height: '18px' }} /> : <Moon style={{ width: '18px', height: '18px' }} />}
+      </button>
 
       <div className="login-card-wrapper">
         {/* Header Branding */}
@@ -165,9 +175,9 @@ export function LoginPage() {
               <div className="role-meta">
                 <div className="role-header">
                   <strong className="role-name">Real Hardware Operator</strong>
-                  <span className="role-pill real" style={{ background: 'rgba(255, 171, 0, 0.2)', color: 'var(--amber)' }}>0 DEMO DATA</span>
+                  <span className="role-pill real">0 DEMO DATA</span>
                 </div>
-                <span className="role-email" style={{ color: 'var(--amber)' }}>real@clustermind.ai</span>
+                <span className="role-email role-email-amber">real@clustermind.ai</span>
                 <small className="role-desc">Starts with 0 dummy nodes · Only real physical device hardware</small>
               </div>
             </button>

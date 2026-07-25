@@ -54,24 +54,13 @@ export function Topbar({ onMobileMenuToggle }) {
         {/* User Auth Profile Badge */}
         {user && (
           <div 
-            className="user-profile-badge" 
+            className="topbar-user-badge" 
             title={`Authenticated as ${user.name} (${user.email})`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '4px 10px',
-              borderRadius: '20px',
-              background: 'rgba(0, 242, 254, 0.08)',
-              border: '1px solid rgba(0, 242, 254, 0.2)',
-              fontSize: '0.75rem',
-              color: 'var(--text)'
-            }}
           >
-            <span style={{ fontSize: '0.9rem' }}>{user.avatar || '🛡️'}</span>
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }} className="topbar-center-hide-mobile">
-              <strong style={{ fontSize: '0.75rem', color: 'var(--text)' }}>{user.name}</strong>
-              <small style={{ fontSize: '0.65rem', color: 'var(--cyan)' }}>{user.role}</small>
+            <span className="topbar-user-avatar">{user.avatar || '🛡️'}</span>
+            <div className="topbar-user-info topbar-center-hide-mobile">
+              <strong className="topbar-user-name">{user.name}</strong>
+              <small className="topbar-user-role">{user.role}</small>
             </div>
           </div>
         )}

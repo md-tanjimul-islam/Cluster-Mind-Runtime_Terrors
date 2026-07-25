@@ -71,11 +71,23 @@ During `/api/heal`:
 
 ## 6. REST API Endpoint Contract
 
+See [`docs/API_REFERENCE.md`](API_REFERENCE.md) for complete request/response schemas.
+
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/status` | Ingests real-time cluster nodes, workloads, incident, impact, and success report |
-| `POST` | `/api/ingest` | Telemetry agent ingestion endpoint evaluating 6D IsolationForest risk |
-| `POST` | `/api/heal` | Executes checkpoint migration, SHA-256 verification, and Safe Mode quarantine |
-| `POST` | `/api/node/safemode` | Toggles Safe Mode quarantine state for worker nodes |
-| `POST` | `/api/nodes/clear-all` | Clears synthetic data for Pure Real-Device Hardware Mode |
-| `POST` | `/api/reset` | Resets system state back to baseline |
+| `GET` | `/api/status` | Full cluster state — nodes, workloads, incident, impact, activity |
+| `POST` | `/api/ingest` | Agent telemetry ingestion — IsolationForest evaluation, node upsert, auto-incident |
+| `POST` | `/api/heal` | Checkpoint migration + SHA-256 verification + Safe Mode quarantine |
+| `POST` | `/api/predict` | Direct 6D IsolationForest model inference (standalone) |
+| `POST` | `/api/register` | Register a node and issue a `secrets.token_hex(16)` auth token |
+| `POST` | `/api/node` | Add or replace a node entry in the registry |
+| `POST` | `/api/node/safemode` | Toggle Safe Mode (Quarantine / NoSchedule) for a node |
+| `POST` | `/api/delete` | Delete node, revoke token, permanently block telemetry ingestion |
+| `POST` | `/api/scenario` | Inject a simulated failure (thermal / memory / network / reset) |
+| `POST` | `/api/config` | Update global IsolationForest risk sensitivity threshold |
+| `POST` | `/api/reset` | Reset full backend state to initial baseline |
+| `POST` | `/api/nodes/clear-all` | Clear all synthetic data — activate pure real-device hardware mode |
+| `POST` | `/api/activity/clear` | Clear the activity audit log |
+| `GET` | `/api/agent/python` | Download the macOS/Linux Python telemetry agent |
+| `GET` | `/api/agent/ps1` | Download the Windows PowerShell telemetry agent |
+

@@ -31,6 +31,19 @@
   --violet: #7c4dff;
   --violet-glow: rgba(124, 77, 255, 0.25);
 
+  /* Login page surface */
+  --login-card-bg: rgba(14, 17, 23, 0.85);
+  --login-input-bg: rgba(0, 0, 0, 0.25);
+  --login-input-focus-bg: rgba(0, 0, 0, 0.4);
+  --login-role-bg: rgba(255, 255, 255, 0.03);
+  --login-role-border: rgba(255, 255, 255, 0.08);
+  --login-role-hover-bg: rgba(0, 242, 254, 0.08);
+  --login-role-hover-border: rgba(0, 242, 254, 0.3);
+  --login-divider: rgba(255, 255, 255, 0.1);
+  --login-text-strong: #ffffff;
+  --topbar-badge-bg: rgba(0, 242, 254, 0.08);
+  --topbar-badge-border: rgba(0, 242, 254, 0.2);
+
   /* Layout Dimensions */
   --sidebar-w: 240px;
   --sidebar-mini-w: 72px;
@@ -73,6 +86,57 @@ body.light-mode {
   --red-glow: rgba(220, 38, 38, 0.2);
   --violet: #7c3aed;
   --violet-glow: rgba(124, 58, 237, 0.18);
+  /* Login page surface overrides for light mode */
+  --login-card-bg: rgba(255, 255, 255, 0.92);
+  --login-input-bg: rgba(241, 245, 249, 0.8);
+  --login-input-focus-bg: rgba(226, 232, 240, 0.9);
+  --login-role-bg: rgba(241, 245, 249, 0.7);
+  --login-role-border: rgba(15, 23, 42, 0.1);
+  --login-role-hover-bg: rgba(2, 132, 199, 0.06);
+  --login-role-hover-border: rgba(2, 132, 199, 0.3);
+  --login-divider: rgba(15, 23, 42, 0.12);
+  --login-text-strong: #0f172a;
+  --topbar-badge-bg: rgba(2, 132, 199, 0.08);
+  --topbar-badge-border: rgba(2, 132, 199, 0.25);
+}
+
+/* System color-scheme preference as CSS-level fallback
+   Only applies when no explicit class is set (no JS override) */
+@media (prefers-color-scheme: light) {
+  :root:not(body.light-mode):not(body.dark-mode) {
+    --bg: #f4f7fb;
+    --bg-subtle: #eaeff6;
+    --surface: #ffffff;
+    --surface-hover: #f8fafc;
+    --surface-card: rgba(255, 255, 255, 0.85);
+    --border: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.16);
+    --border-accent: rgba(0, 168, 255, 0.4);
+    --text: #0f172a;
+    --text-muted: #475569;
+    --text-dim: #94a3b8;
+    --cyan: #0284c7;
+    --cyan-glow: rgba(2, 132, 199, 0.18);
+    --green: #16a34a;
+    --green-glow: rgba(22, 163, 74, 0.18);
+    --amber: #d97706;
+    --amber-glow: rgba(217, 119, 6, 0.18);
+    --red: #dc2626;
+    --red-glow: rgba(220, 38, 38, 0.2);
+    --violet: #7c3aed;
+    --violet-glow: rgba(124, 58, 237, 0.18);
+    --login-card-bg: rgba(255, 255, 255, 0.92);
+    --login-input-bg: rgba(241, 245, 249, 0.8);
+    --login-input-focus-bg: rgba(226, 232, 240, 0.9);
+    --login-role-bg: rgba(241, 245, 249, 0.7);
+    --login-role-border: rgba(15, 23, 42, 0.1);
+    --login-role-hover-bg: rgba(2, 132, 199, 0.06);
+    --login-role-hover-border: rgba(2, 132, 199, 0.3);
+    --login-divider: rgba(15, 23, 42, 0.12);
+    --login-text-strong: #0f172a;
+    --topbar-badge-bg: rgba(2, 132, 199, 0.08);
+    --topbar-badge-border: rgba(2, 132, 199, 0.25);
+  }
 }
 
 /* Base Resets */
@@ -166,6 +230,20 @@ body {
   justify-content: space-between;
   padding: 0 24px;
   z-index: 100;
+}
+
+/* Desktop sidebar toggle visible by default; hamburger hidden */
+.topbar-desktop-only {
+  display: flex;
+}
+
+.topbar-mobile-only {
+  display: none;
+}
+
+/* Center status area hidden on mobile by default */
+.topbar-center-hide-mobile {
+  display: flex;
 }
 
 .brand {
@@ -279,6 +357,42 @@ body.light-mode .topbar-center {
   box-shadow: 0 0 14px var(--cyan-glow);
 }
 
+/* Topbar User Profile Badge — theme-aware */
+.topbar-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--topbar-badge-bg);
+  border: 1px solid var(--topbar-badge-border);
+  font-size: 0.75rem;
+  color: var(--text);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.topbar-user-avatar {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.topbar-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.topbar-user-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.topbar-user-role {
+  font-size: 0.65rem;
+  color: var(--cyan);
+}
+
 /* ==========================================================================
    Sidebar Navigation
    ========================================================================== */
@@ -298,6 +412,39 @@ body.light-mode .topbar-center {
   justify-content: space-between;
   z-index: 90;
   transition: width var(--transition-normal);
+}
+
+/* Mobile backdrop and close button hidden by default on desktop */
+.sidebar-mobile-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 199;
+}
+
+.sidebar-mobile-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-mobile-close:hover {
+  background: var(--surface);
+  color: var(--text);
 }
 
 body.sidebar-mini .sidebar {
@@ -1845,10 +1992,10 @@ body.light-mode .impact-kpi-item {
   max-width: 820px;
   max-height: 88vh;
   width: 100%;
-  background: linear-gradient(180deg, rgba(13, 19, 33, 0.98) 0%, rgba(8, 12, 22, 0.99) 100%);
-  border: 1px solid rgba(0, 242, 254, 0.3);
+  background: var(--surface-card);
+  border: 1px solid var(--border-accent);
   border-radius: var(--radius-lg);
-  box-shadow: 0 0 60px rgba(0, 242, 254, 0.15), 0 25px 65px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 60px var(--cyan-glow), 0 25px 65px rgba(0, 0, 0, 0.5);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1881,8 +2028,8 @@ body.light-mode .impact-kpi-item {
   top: 18px;
   right: 20px;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -1897,17 +2044,17 @@ body.light-mode .impact-kpi-item {
 }
 
 .modal-wizard-v3 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-hover);
 }
 
 .wiz-header-v3 {
   position: relative;
   padding: 24px 28px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  background: rgba(13, 19, 33, 0.85);
+  background: var(--surface-card);
 }
 
 .wiz-badge-strip {
@@ -3229,6 +3376,63 @@ body.light-mode .healing-carousel-strip {
 }
 
 /* ==========================================================================
+   900px — Tablet portrait: fine-tune layout between 768 and 1024
+   ========================================================================== */
+@media (max-width: 900px) {
+  #main {
+    padding: 18px;
+  }
+
+  /* Metrics: 2 columns at 900px */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  /* Dashboard stays single column */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Full-width spans for all panels */
+  .healing-panel,
+  .node-panel,
+  .risk-panel,
+  .jobs-panel,
+  .activity-panel,
+  .impact-panel {
+    grid-column: span 1;
+  }
+
+  /* Topbar: tighten actions gap */
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  /* Node grid: 2 columns */
+  .node-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  /* Job card: stack on narrow tablet */
+  .job-meta {
+    gap: 16px;
+  }
+
+  /* Impact KPI bar: 3 across stays fine */
+  .impact-detail-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Healing stepper: 2 columns */
+  .healing-stepper-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ==========================================================================
    768px — Mobile: sidebar off-canvas, full-width content
    ========================================================================== */
 @media (max-width: 768px) {
@@ -4283,15 +4487,16 @@ body.light-mode .healing-carousel-strip {
   z-index: 10;
   width: 100%;
   max-width: 520px;
-  background: var(--surface-glass, rgba(14, 17, 23, 0.85));
+  background: var(--login-card-bg);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(0, 242, 254, 0.2);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-accent);
   border-radius: 20px;
   padding: 36px 32px;
-  box-shadow: 
-    0 24px 64px rgba(0, 0, 0, 0.6),
-    0 0 32px rgba(0, 242, 254, 0.1);
-  transition: all 0.3s ease;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.4),
+    0 0 32px var(--cyan-glow);
+  transition: background var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .login-header {
@@ -4329,14 +4534,14 @@ body.light-mode .healing-carousel-strip {
 .login-title {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--text, #ffffff);
+  color: var(--text);
   letter-spacing: -0.02em;
   margin-bottom: 6px;
 }
 
 .login-subtitle {
   font-size: 0.82rem;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   line-height: 1.4;
   margin-bottom: 14px;
 }
@@ -4345,14 +4550,14 @@ body.light-mode .healing-carousel-strip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 242, 254, 0.06);
-  border: 1px solid rgba(0, 242, 254, 0.15);
+  background: var(--cyan-glow);
+  border: 1px solid var(--border-accent);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--cyan, #00f2fe);
+  color: var(--cyan);
 }
 
 .sec-dot {
@@ -4394,13 +4599,13 @@ body.light-mode .healing-carousel-strip {
   gap: 6px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-muted, #cbd5e1);
+  color: var(--text-muted);
 }
 
 .login-toggle-pass {
   background: none;
   border: none;
-  color: var(--cyan, #00f2fe);
+  color: var(--cyan);
   font-size: 0.72rem;
   font-weight: 600;
   display: flex;
@@ -4421,27 +4626,31 @@ body.light-mode .healing-carousel-strip {
   left: 12px;
   width: 16px;
   height: 16px;
-  color: var(--text-dim, #64748b);
+  color: var(--text-dim);
   pointer-events: none;
 }
 
 .login-input {
   width: 100%;
   padding: 12px 14px 12px 38px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  background: var(--login-input-bg);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  color: #ffffff;
+  color: var(--text);
   font-size: 0.88rem;
   font-family: inherit;
   transition: all 0.2s ease;
 }
 
+.login-input::placeholder {
+  color: var(--text-dim);
+}
+
 .login-input:focus {
   outline: none;
-  border-color: var(--cyan, #00f2fe);
-  box-shadow: 0 0 16px rgba(0, 242, 254, 0.15);
-  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px var(--cyan-glow);
+  background: var(--login-input-focus-bg);
 }
 
 .login-options-row {
@@ -4455,7 +4664,7 @@ body.light-mode .healing-carousel-strip {
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -4487,7 +4696,7 @@ body.light-mode .healing-carousel-strip {
 .login-demo-section {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  border-top: 1px dashed var(--login-divider);
 }
 
 .demo-section-divider {
@@ -4495,7 +4704,7 @@ body.light-mode .healing-carousel-strip {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--cyan, #00f2fe);
+  color: var(--cyan);
   margin-bottom: 14px;
   text-transform: uppercase;
 }
@@ -4511,8 +4720,8 @@ body.light-mode .healing-carousel-strip {
   align-items: center;
   gap: 14px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--login-role-bg);
+  border: 1px solid var(--login-role-border);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4521,8 +4730,8 @@ body.light-mode .healing-carousel-strip {
 }
 
 .demo-role-card:hover {
-  background: rgba(0, 242, 254, 0.08);
-  border-color: rgba(0, 242, 254, 0.3);
+  background: var(--login-role-hover-bg);
+  border-color: var(--login-role-hover-border);
   transform: translateX(3px);
 }
 
@@ -4537,18 +4746,18 @@ body.light-mode .healing-carousel-strip {
 }
 
 .role-icon-box.admin {
-  background: rgba(0, 242, 254, 0.12);
-  color: var(--cyan, #00f2fe);
+  background: var(--cyan-glow);
+  color: var(--cyan);
 }
 
 .role-icon-box.auditor {
-  background: rgba(121, 40, 202, 0.15);
-  color: var(--violet, #7928ca);
+  background: var(--violet-glow);
+  color: var(--violet);
 }
 
 .role-icon-box.judge {
-  background: rgba(0, 242, 254, 0.12);
-  color: var(--green, #00f2fe);
+  background: var(--green-glow);
+  color: var(--green);
 }
 
 .role-meta {
@@ -4567,7 +4776,7 @@ body.light-mode .healing-carousel-strip {
 .role-name {
   font-size: 0.84rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--login-text-strong);
 }
 
 .role-pill {
@@ -4578,19 +4787,24 @@ body.light-mode .healing-carousel-strip {
   letter-spacing: 0.04em;
 }
 
-.role-pill.admin { background: rgba(0, 242, 254, 0.15); color: var(--cyan); }
-.role-pill.auditor { background: rgba(121, 40, 202, 0.2); color: var(--violet); }
-.role-pill.judge { background: rgba(0, 242, 254, 0.15); color: var(--green); }
+.role-pill.admin   { background: var(--cyan-glow);   color: var(--cyan); }
+.role-pill.auditor { background: var(--violet-glow); color: var(--violet); }
+.role-pill.judge   { background: var(--green-glow);  color: var(--green); }
+.role-pill.real    { background: var(--amber-glow);  color: var(--amber); }
 
 .role-email {
   font-size: 0.72rem;
-  color: var(--cyan, #00f2fe);
+  color: var(--cyan);
   font-family: var(--font-mono, monospace);
+}
+
+.role-email-amber {
+  color: var(--amber);
 }
 
 .role-desc {
   font-size: 0.68rem;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   margin-top: 1px;
 }
 
@@ -4601,8 +4815,194 @@ body.light-mode .healing-carousel-strip {
   gap: 8px;
   margin-top: 20px;
   font-size: 0.7rem;
-  color: var(--text-dim, #64748b);
+  color: var(--text-dim);
   text-align: center;
 }
 
+/* Login page theme toggle button — top-right corner */
+.login-theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
 
+.login-theme-toggle:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Light mode: login backdrop glow adapts */
+body.light-mode .login-backdrop-glow {
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.1) 0%, rgba(124, 58, 237, 0.06) 40%, transparent 70%);
+}
+
+/* Light mode: login grid pattern adapts */
+body.light-mode .login-grid-pattern {
+  background-image:
+    linear-gradient(rgba(2, 132, 199, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.04) 1px, transparent 1px);
+}
+
+/* ==========================================================================
+   Login Spinner (used in LoginPage submit button loading state)
+   ========================================================================== */
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+body.light-mode .spinner-sm {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+}
+
+/* ==========================================================================
+   Ultra-wide (1600px+) — Extra padding room on very large screens
+   ========================================================================== */
+@media (min-width: 1600px) {
+  #main {
+    padding: 40px 48px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Login page — Mobile responsive
+   ========================================================================== */
+@media (max-width: 768px) {
+  .login-card-wrapper {
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .login-title {
+    font-size: 1.35rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .login-theme-toggle {
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-gateway-container {
+    padding: 12px;
+    align-items: flex-start;
+    padding-top: 60px;
+  }
+
+  .login-card-wrapper {
+    padding: 24px 16px;
+    border-radius: 14px;
+  }
+
+  .login-title {
+    font-size: 1.2rem;
+  }
+
+  .login-shield-badge {
+    width: 50px;
+    height: 50px;
+  }
+
+  .demo-role-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .role-icon-box {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ==========================================================================
+   Touch Targets — Minimum 44px tap area on mobile (WCAG 2.5.5)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .icon-btn,
+  .nav-item,
+  .btn,
+  .pill,
+  .range-btn,
+  .demo-btn,
+  .inj-btn,
+  .node-details-btn,
+  .login-submit-btn,
+  .login-theme-toggle,
+  .sidebar-mobile-close {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Nav items already have padding, just ensure height */
+  .nav-item {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* Pill buttons need minimum tap area */
+  .pill {
+    padding: 8px 12px;
+    min-height: 44px;
+  }
+
+  /* Scrollable filter pills on mobile */
+  .filter-pills {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Better tap highlight */
+  button, a {
+    -webkit-tap-highlight-color: rgba(0, 242, 254, 0.12);
+  }
+}
+
+/* ==========================================================================
+   Smooth color-scheme transition on body
+   ========================================================================== */
+body {
+  transition:
+    background-color var(--transition-normal),
+    color var(--transition-normal);
+}

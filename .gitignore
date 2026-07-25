@@ -10,6 +10,3 @@ dist/
 tmp/
 .DS_Store
 *.log
-
-# Excluded folders as per deployment spec
-docs/
