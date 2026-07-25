@@ -109,18 +109,30 @@ export function NodeGrid() {
                   </div>
                 </div>
 
-                <div className="node-bars">
+                <div className="node-bars" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px' }}>
                   <div className="bar-item">
                     <div className="bar-head">CPU<b>{node.cpu}%</b></div>
                     <div className="mini-bar"><div className="mini-fill" style={{ width: `${node.cpu}%`, '--bc': barColor(node.cpu) }}></div></div>
                   </div>
                   <div className="bar-item">
-                    <div className="bar-head">{isGpu ? 'GPU' : 'RAM'}<b>{isGpu ? `${node.gpu || 0}%` : `${node.ram}%`}</b></div>
-                    <div className="mini-bar"><div className="mini-fill" style={{ width: `${isGpu ? (node.gpu || 0) : node.ram}%`, '--bc': barColor(isGpu ? (node.gpu || 0) : node.ram) }}></div></div>
+                    <div className="bar-head">GPU<b>{node.gpu || 0}%</b></div>
+                    <div className="mini-bar"><div className="mini-fill" style={{ width: `${node.gpu || 0}%`, '--bc': barColor(node.gpu || 0) }}></div></div>
                   </div>
                   <div className="bar-item">
-                    <div className="bar-head">TEMP<b>{node.temp}°</b></div>
+                    <div className="bar-head">RAM<b>{node.ram}%</b></div>
+                    <div className="mini-bar"><div className="mini-fill" style={{ width: `${node.ram}%`, '--bc': barColor(node.ram) }}></div></div>
+                  </div>
+                  <div className="bar-item">
+                    <div className="bar-head">TEMP<b>{node.temp}°C</b></div>
                     <div className="mini-bar"><div className="mini-fill" style={{ width: `${node.temp}%`, '--bc': barColor(node.temp) }}></div></div>
+                  </div>
+                  <div className="bar-item">
+                    <div className="bar-head">DISK I/O<b>{node.disk_io || 110} IOPS</b></div>
+                    <div className="mini-bar"><div className="mini-fill" style={{ width: `${Math.min(100, ((node.disk_io || 110) / 300) * 100)}%`, '--bc': barColor(Math.min(100, ((node.disk_io || 110) / 300) * 100)) }}></div></div>
+                  </div>
+                  <div className="bar-item">
+                    <div className="bar-head">NET JITTER<b>{node.net_jitter || 2.1} ms</b></div>
+                    <div className="mini-bar"><div className="mini-fill" style={{ width: `${Math.min(100, ((node.net_jitter || 2.1) / 20) * 100)}%`, '--bc': barColor(Math.min(100, ((node.net_jitter || 2.1) / 20) * 100)) }}></div></div>
                   </div>
                 </div>
 

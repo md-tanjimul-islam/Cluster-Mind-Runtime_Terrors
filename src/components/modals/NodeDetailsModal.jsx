@@ -253,27 +253,57 @@ export function NodeDetailsModal() {
               </div>
 
               {/* AI Anomaly Risk Highlight Card */}
-              <div className="risk-score-card">
-                <div className="risk-score-info">
-                  <ShieldAlert style={{ width: '32px', height: '32px', color: statusColor }} />
-                  <div>
-                    <strong style={{ fontSize: '0.95rem', color: '#fff', display: 'block', marginBottom: '2px' }}>
-                      IsolationForest AI Anomaly Index
-                    </strong>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      Multi-dimensional kernel variance evaluation score updated every 5 seconds.
-                    </p>
+              <div className="risk-score-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div className="risk-score-info">
+                    <ShieldAlert style={{ width: '32px', height: '32px', color: statusColor }} />
+                    <div>
+                      <strong style={{ fontSize: '0.95rem', color: '#fff', display: 'block', marginBottom: '2px' }}>
+                        IsolationForest AI Anomaly Index
+                      </strong>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        Evaluated across 6D kernel telemetry vector [CPU, GPU, RAM, Temp, Disk I/O, Net Jitter].
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className="risk-score-badge"
+                    style={{
+                      color: statusColor,
+                      borderColor: `color-mix(in srgb, ${statusColor} 40%, transparent)`
+                    }}
+                  >
+                    {node.risk}%
                   </div>
                 </div>
 
-                <div
-                  className="risk-score-badge"
-                  style={{
-                    color: statusColor,
-                    borderColor: `color-mix(in srgb, ${statusColor} 40%, transparent)`
-                  }}
-                >
-                  {node.risk}%
+                {/* 6D Telemetry Vector Matrix */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', background: 'rgba(0, 0, 0, 0.25)', borderRadius: '8px', padding: '10px 12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>CPU Load</span>
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.cpu}%</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>GPU Util</span>
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.gpu || 0}%</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>System RAM</span>
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.ram}%</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>Thermal</span>
+                    <strong style={{ fontSize: '0.92rem', color: node.temp >= 75 ? 'var(--red)' : 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.temp}°C</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>Disk I/O</span>
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.disk_io || 110} IOPS</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>Net Jitter</span>
+                    <strong style={{ fontSize: '0.92rem', color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{node.net_jitter || 2.1} ms</strong>
+                  </div>
                 </div>
               </div>
 
