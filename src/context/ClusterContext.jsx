@@ -89,6 +89,15 @@ export function ClusterProvider({ children }) {
 
     const validUsers = [
       {
+        email: 'real@clustermind.ai',
+        pass: 'realhardware2026!',
+        name: 'Hardware Telemetry Engineer',
+        role: 'Pure Real-Device Mode',
+        badge: 'REAL HARDWARE ONLY',
+        avatar: '⚡',
+        isPureReal: true
+      },
+      {
         email: 'admin@clustermind.ai',
         pass: 'clustermind2026!',
         name: 'Dr. Tanjimul Islam',
@@ -115,7 +124,7 @@ export function ClusterProvider({ children }) {
     ];
 
     const match = validUsers.find(
-      u => u.email === emailLower && (u.pass === pass.toLowerCase() || pass === 'ClusterMind2026!' || pass === 'AuditSecure2026!' || pass === 'demo1234')
+      u => u.email === emailLower && (u.pass === pass.toLowerCase() || pass === 'RealHardware2026!' || pass === 'ClusterMind2026!' || pass === 'AuditSecure2026!' || pass === 'demo1234')
     );
 
     if (match) {
@@ -125,13 +134,26 @@ export function ClusterProvider({ children }) {
         role: match.role,
         badge: match.badge,
         avatar: match.avatar,
+        isPureReal: !!match.isPureReal,
         loggedInAt: new Date().toLocaleTimeString()
       };
+
+      if (match.isPureReal) {
+        localStorage.setItem('clustermind-pure-real-mode', 'true');
+        localStorage.removeItem('clustermind-custom-nodes');
+        setNodes([]);
+        setWorkloadJobs([]);
+        setIncident(null);
+        try {
+          fetch(`${API_BASE}/api/nodes/clear-all`, { method: 'POST' });
+        } catch {}
+      }
+
       setUser(userData);
       if (remember) {
         localStorage.setItem('clustermind-auth-user', JSON.stringify(userData));
       }
-      addToast('Authentication Success', `Welcome back, ${match.name} (${match.role})`, 'var(--cyan)');
+      addToast('Authentication Success', match.isPureReal ? 'Pure Real-Device Session Active (0 Synthetic Nodes)' : `Welcome back, ${match.name} (${match.role})`, 'var(--cyan)');
       return { ok: true, user: userData };
     } else {
       return { ok: false, message: 'Invalid credentials. Use demo credentials below.' };

@@ -152,6 +152,26 @@ export function LoginPage() {
           </div>
 
           <div className="demo-roles-grid">
+            {/* Role 0: Pure Real-Device Hardware Operator */}
+            <button
+              type="button"
+              className="demo-role-card"
+              onClick={() => handleQuickFill('real@clustermind.ai', 'RealHardware2026!')}
+              style={{ borderColor: 'rgba(255, 171, 0, 0.4)', background: 'rgba(255, 171, 0, 0.05)' }}
+            >
+              <div className="role-icon-box real" style={{ background: 'rgba(255, 171, 0, 0.15)', color: 'var(--amber)' }}>
+                <Cpu style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div className="role-meta">
+                <div className="role-header">
+                  <strong className="role-name">Real Hardware Operator</strong>
+                  <span className="role-pill real" style={{ background: 'rgba(255, 171, 0, 0.2)', color: 'var(--amber)' }}>0 DEMO DATA</span>
+                </div>
+                <span className="role-email" style={{ color: 'var(--amber)' }}>real@clustermind.ai</span>
+                <small className="role-desc">Starts with 0 dummy nodes · Only real physical device hardware</small>
+              </div>
+            </button>
+
             {/* Role 1: Admin */}
             <button
               type="button"
