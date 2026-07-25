@@ -386,7 +386,29 @@ export function ClusterProvider({ children }) {
       setIncident(null);
     }
 
-    setNodes(prev => prev.map(n => n.id === nodeToHeal ? { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, safe_mode: true, status: 'safe_mode' } : n));
+    setNodes(prev => prev.map(n => {
+      if (n.id === nodeToHeal) {
+        return { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, safe_mode: true, status: 'safe_mode' };
+      }
+      if (n.id === healthyTarget) {
+        const nextCpu = Math.min(92, (n.cpu || 60) + 14);
+        const nextGpu = Math.min(92, (n.gpu || 70) + 12);
+        const nextRam = Math.min(90, (n.ram || 55) + 8);
+        const nextTemp = Math.min(78, (n.temp || 62) + 5);
+        const nextRisk = Math.max(38, (n.risk || 18) + 20);
+        return {
+          ...n,
+          cpu: nextCpu,
+          gpu: nextGpu,
+          ram: nextRam,
+          temp: nextTemp,
+          risk: nextRisk,
+          jobs: (n.jobs || 2) + 1,
+          status: nextRisk >= 65 ? 'critical' : (nextRisk >= 30 ? 'watch' : 'healthy')
+        };
+      }
+      return n;
+    }));
     setWorkloadJobs(prev => prev.map(j => j.node === nodeToHeal ? { ...j, node: healthyTarget, status: 'Running', progress: `Active on ${healthyTarget}` } : j));
 
     addToast('Recovery Verified & Safe Mode Engaged', `Node ${nodeToHeal} quarantined in Safe Mode · 0 Lost Steps`, 'var(--green)');

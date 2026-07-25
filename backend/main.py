@@ -618,6 +618,37 @@ def complete_healing(req: Optional[HealRequest] = None):
         "status": "VERIFIED_EXACT" if all_verified else "CORRUPTED_CHECKPOINT"
     }
 
+    # Dynamic Target Node Load & IsolationForest Risk Index Update
+    if len(migrated_job_ids) > 0:
+        for n in state["nodes"]:
+            if n["id"] == target_node:
+                job_delta = len(migrated_job_ids)
+                n["jobs"] = n.get("jobs", 2) + job_delta
+                n["cpu"] = min(92, n.get("cpu", 50) + (14 * job_delta))
+                n["gpu"] = min(92, n.get("gpu", 50) + (12 * job_delta))
+                n["ram"] = min(90, n.get("ram", 50) + (8 * job_delta))
+                n["temp"] = min(78, n.get("temp", 55) + (5 * job_delta))
+                n["disk_io"] = n.get("disk_io", 100) + 40
+
+                # Re-evaluate IsolationForest AI Anomaly Index for target node under newly absorbed load
+                try:
+                    pred_target = anomaly_engine.predict_risk(
+                        cpu=n["cpu"],
+                        ram=n["ram"],
+                        disk_io=n.get("disk_io", 110),
+                        net_jitter=n.get("net_jitter", 3.0),
+                        gpu_temp=n["temp"],
+                        gpu_util=n["gpu"],
+                        risk_threshold=state.get("risk_threshold", 65)
+                    )
+                    n["risk"] = max(38, pred_target["risk"])
+                    if n["risk"] < state.get("risk_threshold", 65):
+                        n["status"] = "watch" if n["risk"] >= 30 else "healthy"
+                except Exception:
+                    n["risk"] = 38
+                    n["status"] = "watch"
+                break
+
     # 2. Safe Mode: Place incident node in Safe Mode (Quarantined / NoSchedule)
     for n in state["nodes"]:
         if n["id"] == inc_node:
