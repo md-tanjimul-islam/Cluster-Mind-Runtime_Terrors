@@ -3,9 +3,14 @@ import { useCluster } from '../../context/ClusterContext';
 import { Activity, ShieldCheck, DollarSign, Clock } from 'lucide-react';
 
 export function MetricsGrid() {
-  const { nodes, impact } = useCluster();
+  const { nodes, impact, user } = useCluster();
 
-  const avgLoad = nodes.length ? Math.round(nodes.reduce((acc, n) => acc + n.cpu, 0) / nodes.length) : 0;
+  const isPureReal = localStorage.getItem('clustermind-pure-real-mode') === 'true' || user?.isPureReal;
+
+  const avgLoad = nodes.length ? Math.round(nodes.reduce((acc, n) => acc + (n.cpu || 0), 0) / nodes.length) : 0;
+  const preventedVal = impact?.prevented ?? (isPureReal ? 0 : 47);
+  const savingsVal = impact?.savings ?? (isPureReal ? 0 : 38980);
+  const recoveryVal = impact?.recovery ?? 24;
 
   return (
     <section className="metrics-grid" aria-label="Cluster summary">
@@ -16,7 +21,7 @@ export function MetricsGrid() {
         <div>
           <span className="metric-label">Cluster load</span>
           <strong className="metric-val">{avgLoad}%</strong>
-          <small className="metric-note">Balanced across {nodes.length} nodes</small>
+          <small className="metric-note">Balanced across {nodes.length} {isPureReal ? 'real' : ''} node{nodes.length === 1 ? '' : 's'}</small>
         </div>
         <div className="sparklet" aria-hidden="true"></div>
       </article>
@@ -27,10 +32,10 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Failures prevented</span>
-          <strong className="metric-val">{(impact?.prevented ?? 47).toLocaleString()}</strong>
-          <small className="metric-note">+3 this week</small>
+          <strong className="metric-val">{preventedVal.toLocaleString()}</strong>
+          <small className="metric-note">{isPureReal ? (preventedVal > 0 ? `+${preventedVal} real incidents healed` : 'Real hardware agent monitoring') : '+3 this week'}</small>
         </div>
-        <div className="metric-tag">↑ 18%</div>
+        <div className="metric-tag">{isPureReal ? (preventedVal > 0 ? `+${preventedVal} real` : '0 real') : '↑ 18%'}</div>
       </article>
 
       <article className="metric-card accent-violet">
@@ -39,10 +44,10 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Estimated savings</span>
-          <strong className="metric-val">${(impact?.savings ?? 38980).toLocaleString()}</strong>
+          <strong className="metric-val">${savingsVal.toLocaleString()}</strong>
           <small className="metric-note">Since monitoring began</small>
         </div>
-        <div className="metric-tag">+$1.8K</div>
+        <div className="metric-tag">{isPureReal ? (savingsVal > 0 ? `+$${(savingsVal / 1000).toFixed(1)}K` : '$0') : '+$1.8K'}</div>
       </article>
 
       <article className="metric-card accent-amber">
@@ -51,7 +56,7 @@ export function MetricsGrid() {
         </div>
         <div>
           <span className="metric-label">Mean recovery</span>
-          <strong className="metric-val">{impact?.recovery ?? 24} sec</strong>
+          <strong className="metric-val">{recoveryVal} sec</strong>
           <small className="metric-note">Industry baseline: 45 min</small>
         </div>
         <div className="metric-tag">99% faster</div>

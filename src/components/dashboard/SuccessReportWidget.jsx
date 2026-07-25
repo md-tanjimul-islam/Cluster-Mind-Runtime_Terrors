@@ -3,13 +3,15 @@ import { useCluster } from '../../context/ClusterContext';
 import { ShieldCheck, CheckCircle2, Clock, AlertTriangle, Lock } from 'lucide-react';
 
 export function SuccessReportWidget() {
-  const { successReport, impact } = useCluster();
+  const { successReport, impact, user } = useCluster();
 
-  const successRate = successReport?.success_rate || '100%';
-  const verifiedRecoveries = successReport?.verified_recoveries ?? impact?.prevented ?? 47;
-  const totalMigrations = successReport?.total_migrations ?? impact?.prevented ?? 47;
+  const isPureReal = localStorage.getItem('clustermind-pure-real-mode') === 'true' || user?.isPureReal;
+
+  const totalMigrations = successReport?.total_migrations ?? (isPureReal ? (impact?.prevented ?? 0) : (impact?.prevented ?? 47));
+  const verifiedRecoveries = successReport?.verified_recoveries ?? (isPureReal ? (impact?.prevented ?? 0) : (impact?.prevented ?? 47));
+  const successRate = totalMigrations > 0 ? `${Math.round((verifiedRecoveries / totalMigrations) * 100)}%` : '100%';
   const avgRecovery = successReport?.avg_recovery_time || `${impact?.recovery ?? 24}s`;
-  const falseAlarms = successReport?.false_alarms ?? 2;
+  const falseAlarms = successReport?.false_alarms ?? (isPureReal ? 0 : 2);
 
   return (
     <article className="panel success-report-panel" style={{ background: 'color-mix(in srgb, var(--cyan) 4%, var(--surface))', border: '1px solid color-mix(in srgb, var(--cyan) 25%, transparent)', marginBottom: '16px' }}>
