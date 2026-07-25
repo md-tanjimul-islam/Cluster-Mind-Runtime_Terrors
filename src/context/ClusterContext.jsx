@@ -294,7 +294,7 @@ export function ClusterProvider({ children }) {
     };
 
     fetchStatus();
-    const pollSpeed = parseInt(localStorage.getItem('clustermind-poll-interval')) || 2000;
+    const pollSpeed = parseInt(localStorage.getItem('clustermind-poll-interval')) || 1000;
     const interval = setInterval(fetchStatus, pollSpeed);
     return () => clearInterval(interval);
   }, []);
@@ -369,11 +369,17 @@ export function ClusterProvider({ children }) {
     const healthyTarget = nodes.find(n => n.id !== nodeToHeal && n.connection !== 'offline' && n.risk < 45)?.id || 'gpu-worker-01';
 
     try {
-      await fetch(`${API_BASE}/api/heal`, {
+      const res = await fetch(`${API_BASE}/api/heal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ node: nodeToHeal, target: healthyTarget })
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success_report) setSuccessReport(data.success_report);
+        if (data.impact) setImpact(data.impact);
+        if (data.activity) setActivity(data.activity);
+      }
     } catch {}
 
     if (incident && incident.node === nodeToHeal) {
@@ -383,28 +389,6 @@ export function ClusterProvider({ children }) {
     setNodes(prev => prev.map(n => n.id === nodeToHeal ? { ...n, temp: 58, ram: 48, cpu: 40, risk: 14, safe_mode: true, status: 'safe_mode' } : n));
     setWorkloadJobs(prev => prev.map(j => j.node === nodeToHeal ? { ...j, node: healthyTarget, status: 'Running', progress: `Active on ${healthyTarget}` } : j));
 
-    setImpact(prev => ({ ...prev, prevented: prev.prevented + 1, savings: prev.savings + 1180 }));
-    setSuccessReport(prev => {
-      const tot = (prev?.total_migrations || 47) + 1;
-      const ver = (prev?.verified_recoveries || 47) + 1;
-      return {
-        ...prev,
-        total_migrations: tot,
-        verified_recoveries: ver,
-        success_rate: `${Math.round((ver / tot) * 100)}%`
-      };
-    });
-    setActivity(prev => [
-      {
-        type: 'shield',
-        title: `Recovery Verified & Safe Mode Engaged (${nodeToHeal})`,
-        detail: `Workloads verified at exact checkpoint on ${healthyTarget} with 0 lost steps and 0.00s data loss. Node ${nodeToHeal} placed in Safe Mode (Quarantined) to block new work.`,
-        time: 'Just now',
-        verified: true,
-        lost_steps: 0
-      },
-      ...prev
-    ]);
     addToast('Recovery Verified & Safe Mode Engaged', `Node ${nodeToHeal} quarantined in Safe Mode · 0 Lost Steps`, 'var(--green)');
     playSound(880, 0.25);
   };
@@ -419,11 +403,16 @@ export function ClusterProvider({ children }) {
     }));
 
     try {
-      await fetch(`${API_BASE}/api/node/safemode`, {
+      const res = await fetch(`${API_BASE}/api/node/safemode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: nodeId, safe_mode: enable })
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.activity) setActivity(data.activity);
+        if (data.success_report) setSuccessReport(data.success_report);
+      }
     } catch {}
 
     addToast(

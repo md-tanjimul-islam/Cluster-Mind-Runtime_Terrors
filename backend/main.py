@@ -541,14 +541,21 @@ def toggle_safe_mode(req: SafeModeRequest):
             node_found = True
             break
     
-    action_text = "placed in Safe Mode (Quarantine / NoSchedule) to block new work" if req.safe_mode else "released from Safe Mode back to active scheduling"
     state["activity"].insert(0, {
-        "type": "alert" if req.safe_mode else "shield",
-        "title": f"Safe Mode State Change: {req.id}",
-        "detail": f"Node {req.id} {action_text}.",
+        "type": "shield" if req.safe_mode else "move",
+        "title": f"Safe Mode {'Activated' if req.safe_mode else 'Released'} ({req.id})",
+        "detail": f"Node {req.id} {'placed in Safe Mode (Quarantined / NoSchedule)' if req.safe_mode else 'released back to active workload scheduling'}.",
         "time": "Just now"
     })
-    return {"ok": True, "id": req.id, "safe_mode": req.safe_mode}
+    return {
+        "ok": True,
+        "id": req.id,
+        "safe_mode": req.safe_mode,
+        "nodes": state["nodes"],
+        "activity": state["activity"],
+        "impact": state["impact"],
+        "success_report": state.get("success_report")
+    }
 
 @app.post("/api/heal")
 def complete_healing(req: Optional[HealRequest] = None):
@@ -615,7 +622,8 @@ def complete_healing(req: Optional[HealRequest] = None):
         "recovery_check": recovery_check,
         "safe_mode": True,
         "impact": state["impact"],
-        "success_report": state["success_report"]
+        "success_report": state.get("success_report"),
+        "activity": state["activity"]
     }
 
 @app.post("/api/delete")
