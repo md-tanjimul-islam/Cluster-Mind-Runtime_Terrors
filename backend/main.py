@@ -345,7 +345,10 @@ def ingest_telemetry(data: Optional[dict] = None):
                 node["vram_used"] = vram_used
                 node["uptime"] = uptime
                 node["risk"] = effective_risk
-                node["status"] = effective_status
+                if node.get("safe_mode") and effective_status != "critical":
+                    node["status"] = "safe_mode"
+                else:
+                    node["status"] = effective_status
                 node["jobs"] = max(2, jobs)
                 node["connection"] = "online"
                 node["last_seen"] = int(time.time())
