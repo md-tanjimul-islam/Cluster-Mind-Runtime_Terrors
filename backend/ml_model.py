@@ -47,6 +47,16 @@ class ClusterAnomalyEngine:
         else:
             risk = int(np.clip(72 + (-0.15 - raw_score) * 120, 72, 98))
 
+        # Explicit physical overload rules for severe CPU/GPU/Thermal stress
+        cpu_stress = max(0.0, (cpu - 75.0) / 25.0) if cpu > 75.0 else 0.0
+        temp_stress = max(0.0, (gpu_temp - 70.0) / 20.0) if gpu_temp > 70.0 else 0.0
+        gpu_stress = max(0.0, (gpu_util - 75.0) / 25.0) if gpu_util > 75.0 else 0.0
+        ram_stress = max(0.0, (ram - 80.0) / 20.0) if ram > 80.0 else 0.0
+
+        physical_risk = int(min(98, 25 + (cpu_stress * 40 + temp_stress * 30 + gpu_stress * 20 + ram_stress * 10)))
+        if cpu >= 90 or gpu_temp >= 75 or gpu_util >= 85:
+            risk = max(risk, physical_risk, 75)
+
         if risk >= risk_threshold:
             status = 'critical'
         elif risk >= 30:

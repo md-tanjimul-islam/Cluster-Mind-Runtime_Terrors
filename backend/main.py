@@ -323,9 +323,9 @@ def ingest_telemetry(data: Optional[dict] = None):
         except Exception:
             pred = {"anomaly_score": 0.1, "risk": 15, "status": "healthy"}
 
-        # Check 60-second stabilization grace period after healing
+        # Check 60-second stabilization grace period after healing (Only for low/nominal post-heal telemetry)
         healed_time = next((n.get("healed_at", 0) for n in state["nodes"] if n.get("id") == node_id), 0)
-        in_grace_period = (time.time() - healed_time) < 60
+        in_grace_period = (healed_time > 0) and ((time.time() - healed_time) < 60) and (pred["risk"] < 65)
 
         effective_risk = min(18, pred["risk"]) if in_grace_period else pred["risk"]
         effective_status = "healthy" if in_grace_period else pred["status"]
