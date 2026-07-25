@@ -393,14 +393,45 @@ def ingest_telemetry(data: Optional[dict] = None):
                 "agent_ver": agent_ver or "3.5.0-judge-pro"
             })
 
-        # Process workloads
+        # Check automatic Safe Mode release after sustained healthy telemetry (5 consecutive checks < 25% risk)
+        target_is_safe = False
+        for node in state["nodes"]:
+            if node.get("id") == node_id:
+                target_is_safe = node.get("safe_mode", False)
+                if target_is_safe:
+                    if pred["risk"] < 25 and temp < 70 and cpu < 70:
+                        node["healthy_telemetry_count"] = node.get("healthy_telemetry_count", 0) + 1
+                        if node["healthy_telemetry_count"] >= 5:
+                            node["safe_mode"] = False
+                            node["status"] = "healthy"
+                            node["healthy_telemetry_count"] = 0
+                            node["healed_at"] = 0
+                            target_is_safe = False
+                            state["activity"].insert(0, {
+                                "type": "shield",
+                                "title": f"Safe Mode Auto-Released ({node_id})",
+                                "detail": f"Node {node_id} health normalized over 5 consecutive checks (Risk {pred['risk']}%, Temp {temp}°C). Quarantined NoSchedule status released back to active scheduling.",
+                                "time": "Just now"
+                            })
+                    else:
+                        node["healthy_telemetry_count"] = 0
+                break
+
+        # Process workloads (STRICT SAFE MODE ENFORCEMENT: Block process_jobs for quarantined nodes)
         process_jobs = data.get("process_jobs")
-        if process_jobs and len(process_jobs) > 0:
+        if process_jobs and len(process_jobs) > 0 and not target_is_safe:
             state["workloads"] = [w for w in state["workloads"] if w.get("node") != node_id]
             state["workloads"].extend(process_jobs)
             for node in state["nodes"]:
                 if node.get("id") == node_id:
                     node["jobs"] = len(process_jobs)
+                    break
+        elif target_is_safe:
+            # Quarantined node in Safe Mode: block new workload scheduling
+            state["workloads"] = [w for w in state["workloads"] if w.get("node") != node_id]
+            for node in state["nodes"]:
+                if node.get("id") == node_id:
+                    node["jobs"] = 0
                     break
         else:
             has_workloads = any(w.get("node") == node_id for w in state["workloads"])
@@ -430,14 +461,23 @@ def ingest_telemetry(data: Optional[dict] = None):
                     }
                 ])
 
-        if not in_grace_period and pred["risk"] >= thresh:
-            target_node = next((n.get("id") for n in state["nodes"] if n.get("id") != node_id and n.get("connection") == "online" and n.get("risk", 0) < 45), "gpu-worker-01") or "gpu-worker-01"
+        if not in_grace_period and pred["risk"] >= thresh and not target_is_safe:
+            healthy_targets = [
+                n.get("id") for n in state["nodes"]
+                if n.get("id") != node_id
+                and n.get("connection") == "online"
+                and n.get("risk", 0) < 45
+                and not n.get("safe_mode")
+                and n.get("status") != "safe_mode"
+            ]
+            target_node = healthy_targets[0] if healthy_targets else "gpu-worker-01"
             state["incident"] = {
                 "node": node_id,
                 "risk": pred["risk"],
                 "status": "checkpointing",
                 "progress": 55,
-                "target": target_node
+                "target": target_node,
+                "start_time": time.time()
             }
 
             migrated_count = 0

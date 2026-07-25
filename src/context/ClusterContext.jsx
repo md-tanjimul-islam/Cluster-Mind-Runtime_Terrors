@@ -379,8 +379,15 @@ export function ClusterProvider({ children }) {
         if (data.success_report) setSuccessReport(data.success_report);
         if (data.impact) setImpact(data.impact);
         if (data.activity) setActivity(data.activity);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        addToast('Healing Execution Aborted', errData.detail || 'Backend failover endpoint error', 'var(--red)');
+        return;
       }
-    } catch {}
+    } catch (err) {
+      addToast('Network Error', 'Unable to reach ClusterMind backend service', 'var(--red)');
+      return;
+    }
 
     if (incident && incident.node === nodeToHeal) {
       setIncident(null);
