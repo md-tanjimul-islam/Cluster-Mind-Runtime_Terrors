@@ -206,14 +206,33 @@ export function ClusterProvider({ children }) {
           const data = await res.json();
           if (data && data.nodes && Array.isArray(data.nodes)) {
             let validServerNodes = data.nodes.filter(n => n && typeof n.id === 'string' && n.id.trim() !== '');
+
+            // Filter out revoked nodes persistently
+            try {
+              const revoked = JSON.parse(localStorage.getItem('clustermind-revoked-nodes') || '[]');
+              if (Array.isArray(revoked) && revoked.length > 0) {
+                const revokedSet = new Set(revoked.map(id => String(id).toLowerCase()));
+                validServerNodes = validServerNodes.filter(n => !revokedSet.has(n.id.toLowerCase()));
+              }
+            } catch {}
+
             if (isPureRealMode) {
               validServerNodes = validServerNodes.filter(n => n.source === 'real');
             }
             setNodes(prevNodes => {
               const serverNodeIds = new Set(validServerNodes.map(n => n.id.toLowerCase()));
               const localCustomNodes = (prevNodes || []).filter(n => n && typeof n.id === 'string' && !serverNodeIds.has(n.id.toLowerCase()));
-              const merged = [...validServerNodes, ...localCustomNodes];
+              let merged = [...validServerNodes, ...localCustomNodes];
               
+              // Apply revoked filter to merged array
+              try {
+                const revoked = JSON.parse(localStorage.getItem('clustermind-revoked-nodes') || '[]');
+                if (Array.isArray(revoked) && revoked.length > 0) {
+                  const revokedSet = new Set(revoked.map(id => String(id).toLowerCase()));
+                  merged = merged.filter(n => n && typeof n.id === 'string' && !revokedSet.has(n.id.toLowerCase()));
+                }
+              } catch {}
+
               if (isPureRealMode) {
                 return merged.filter(n => n.source === 'real');
               }
@@ -392,18 +411,31 @@ export function ClusterProvider({ children }) {
   };
 
   const deleteNode = async (nodeId) => {
+    const nodeLower = String(nodeId || '').trim().toLowerCase();
+    if (!nodeLower) return;
+
     try {
+      // 1. Add to local revoked list in localStorage
+      const revoked = JSON.parse(localStorage.getItem('clustermind-revoked-nodes') || '[]');
+      if (Array.isArray(revoked) && !revoked.map(id => String(id).toLowerCase()).includes(nodeLower)) {
+        revoked.push(nodeLower);
+        localStorage.setItem('clustermind-revoked-nodes', JSON.stringify(revoked));
+      }
+      
+      // 2. Remove from custom nodes storage
       const stored = localStorage.getItem('clustermind-custom-nodes');
       if (stored) {
         const parsed = JSON.parse(stored);
-        const filtered = (parsed || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeId.toLowerCase());
+        const filtered = (parsed || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeLower);
         localStorage.setItem('clustermind-custom-nodes', JSON.stringify(filtered));
       }
     } catch {}
 
-    setNodes(prev => (prev || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeId.toLowerCase()));
-    setWorkloadJobs(prev => (prev || []).filter(w => w && typeof w.node === 'string' && w.node.toLowerCase() !== nodeId.toLowerCase()));
+    // 3. Immediately filter React state
+    setNodes(prev => (prev || []).filter(n => n && typeof n.id === 'string' && n.id.toLowerCase() !== nodeLower));
+    setWorkloadJobs(prev => (prev || []).filter(w => w && typeof w.node === 'string' && w.node.toLowerCase() !== nodeLower));
 
+    // 4. Send POST to backend delete endpoint
     try {
       await fetch(`${API_BASE}/api/delete`, {
         method: 'POST',

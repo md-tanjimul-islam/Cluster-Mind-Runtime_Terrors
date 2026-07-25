@@ -575,7 +575,8 @@ def clear_all_nodes():
     state["workloads"] = []
     state["incident"] = None
     state["tokens"] = {}
-    state["revoked_nodes"] = set()
+    if "revoked_nodes" not in state:
+        state["revoked_nodes"] = set()
     state["activity"].insert(0, {
         "type": "alert",
         "title": "Pure Real-Device Mode Activated",
